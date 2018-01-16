@@ -15,6 +15,6 @@ setup(name="what-vpn",
       license='GPL v3 or later',
       install_requires=[ 'requests>=2.0.0' ],
       url="https://github.com/dlenski/what-vpn",
-      py_modules = ['what_vpn'],
-      entry_points={ 'console_scripts': [ 'what-vpn=what_vpn:main' ] }
+      packages = ['what_vpn'],
+      entry_points={ 'console_scripts': [ 'what-vpn=what_vpn.__main__:main' ] }
       )
