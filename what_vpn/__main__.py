@@ -6,6 +6,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from requests import exceptions as rex
 from .sniffers import sniffers
 from .requests import SnifferSession
+import socket
 
 import argparse
 import os
@@ -28,6 +29,13 @@ def main():
             print("\nSniffing {} ...".format(server))
         else:
             print("{}: ".format(server), end='')
+
+        domain = server.split(':', 1)[0]
+        try:
+            socket.gethostbyname(domain)
+        except socket.error:
+            print("DNS lookup failed")
+            continue
 
         hits = []
         ssle = timeout = 0
