@@ -64,11 +64,11 @@ def anyconnect(sess, server):
             return "OpenConnect ocserv"
 
 checkers =  [
-    ('PAN GlobalProtect', global_protect),
+    ('AnyConnect/OpenConnect', anyconnect),
     ('Juniper Network Connect', juniper_nc),
+    ('PAN GlobalProtect', global_protect),
     ('Check Point', check_point),
     ('SSTP', sstp),
-    ('AnyConnect/OpenConnect', anyconnect),
 ]
 
 ########################################
@@ -86,6 +86,7 @@ class tsess(requests.Session):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument('-v','--verbose', default=0, action='count')
+    p.add_argument('-1','--first', action='store_true', help='Stop after first hit')
     p.add_argument('-t','--timeout', metavar='SEC', type=lambda x: int(x) or None, default=10, help='Timeout in seconds (default %(default)s, 0 for none)')
     p.add_argument('server', nargs='+', help='suspected SSL-VPN server')
     args = p.parse_args()
@@ -125,6 +126,8 @@ def main():
 
             if hit:
                 hits.append(hit)
+                if args.first:
+                    break
             if args.verbose:
                 print(hit or ex)
         else:
