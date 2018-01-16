@@ -1,15 +1,16 @@
 # what-vpn
 
-Identifies servers running various SSL VPNs.
+Identifies servers running various SSL VPNs. Currently it can recognize…
 
-Currently identifies Cisco AnyConnect,
-[OpenConnect (ocserv)](https://en.wikipedia.org/wiki/OpenConnect),
-Juniper Network Connect, Microsoft SSTP, and PAN GlobalProtect
-servers.
+* Cisco AnyConnect
+* [OpenConnect (ocserv)](https://en.wikipedia.org/wiki/OpenConnect)
+* Juniper Network Connect/Pulse
+* Microsoft SSTP
+* PAN GlobalProtect
 
 ## Install
 
-Requires Python 3, `pip`, and [`requests`](https://python-requests.org):
+Requires Python 3, `pip`, and [`requests`](https://docs.python-requests.org):
 
 ```sh
 $ pip3 install https://github.com/dlenski/what-vpn/archive/master.zip
