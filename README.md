@@ -1,3 +1,5 @@
+[![Build Status](https://api.travis-ci.org/dlenski/what-vpn.png)](https://travis-ci.org/dlenski/what-vpn)
+
 # what-vpn
 
 Identifies servers running various SSL VPNs.
