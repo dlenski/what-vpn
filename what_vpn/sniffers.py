@@ -64,6 +64,11 @@ def anyconnect(sess, server):
         if 'X-Reason' in r.headers:
             return "OpenConnect ocserv"
 
+def openvpn(sess, server):
+    r = sess.get('https://{}/'.format(server))
+    if any(c.name.startswith('openvpn_sess_') for c in sess.cookies):
+        return "OpenVPN"
+
 sniffers = [
     ('AnyConnect/OpenConnect', anyconnect),
     ('Juniper Network Connect', juniper_nc),
@@ -71,4 +76,5 @@ sniffers = [
     ('Barracuda', barracuda),
     ('Check Point', check_point),
     ('SSTP', sstp),
+    ('OpenVPN', openvpn),
 ]
