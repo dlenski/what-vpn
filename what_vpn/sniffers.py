@@ -7,14 +7,21 @@ def global_protect(sess, server):
     #        components.append('gateway')
 
     components = []
+    hit = False
     r = sess.get('https://{}/global-protect/prelogin.esp'.format(server), headers={'user-agent':'PAN GlobalProtect'})
-    if r.headers['content-type'].startswith('application/xml') and b'<status>Success</status>' in r.content:
-        components.append('portal')
+    if r.headers['content-type'].startswith('application/xml') and b'<prelogin-response>' in r.content:
+        hit = True
+        if b'<status>Success</status>' in r.content:
+            components.append('portal')
     r = sess.get('https://{}/ssl-vpn/prelogin.esp'.format(server), headers={'user-agent':'PAN GlobalProtect'})
-    if r.headers['content-type'].startswith('application/xml') and b'<status>Success</status>' in r.content:
-        components.append('gateway')
+    if r.headers['content-type'].startswith('application/xml') and b'<prelogin-response>' in r.content:
+        hit = True
+        if b'<status>Success</status>' in r.content:
+            components.append('gateway')
     if components:
         return "PAN GlobalProtect ({})".format(' and '.join(components))
+    elif hit:
+        return "PAN GlobalProtect (unknown)"
 
 def juniper_nc(sess, server):
     # Juniper is frustrating because mostly it just spits out standard HTML, sometimes along with DS* cookies
