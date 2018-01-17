@@ -1,4 +1,5 @@
 from contextlib import closing
+from urllib.parse import urlsplit
 
 def global_protect(sess, server):
     # with closing(sess.get('https://{}/ssl-tunnel-connect.sslvpn'.format(server), stream=True)) as r:
@@ -7,10 +8,10 @@ def global_protect(sess, server):
 
     components = []
     r = sess.get('https://{}/global-protect/prelogin.esp'.format(server), headers={'user-agent':'PAN GlobalProtect'})
-    if b'<status>Success</status>' in r.content:
+    if r.headers['content-type'].startswith('application/xml') and b'<status>Success</status>' in r.content:
         components.append('portal')
     r = sess.get('https://{}/ssl-vpn/prelogin.esp'.format(server), headers={'user-agent':'PAN GlobalProtect'})
-    if b'<status>Success</status>' in r.content:
+    if r.headers['content-type'].startswith('application/xml') and b'<status>Success</status>' in r.content:
         components.append('gateway')
     if components:
         return "PAN GlobalProtect ({})".format(' and '.join(components))
@@ -18,12 +19,19 @@ def global_protect(sess, server):
 def juniper_nc(sess, server):
     # Juniper is frustrating because mostly it just spits out standard HTML, sometimes along with DS* cookies
 
-    r = sess.get('https://{}/dana-na/auth/url_default/welcome.cgi'.format(server), headers={'user-agent':'ncsrv'})
-    if (r.status_code==200 and b'/dana-na/' in r.content) or any(c.startswith('DS') for c in r.cookies.keys()):
+    r = sess.get('https://{}/'.format(server), headers={'user-agent':'ncsrv'})
+    if urlsplit(r.url).path.startswith('/dana-na/auth/') or any(c.name.startswith('DS') for c in sess.cookies):
         return "Juniper Network Connect"
 
+def barracuda(sess, server):
+    # Similar to Juniper
+
+    r = sess.get('https://{}'.format(server))
+    if urlsplit(r.url).path.startswith('/default/showLogon.do') or 'SSLX_SSESHID' in sess.cookies:
+        return "Barracuda"
+
 def check_point(sess, server):
-    # "GET /sslvpn/Login/Login" gives too many false positives
+    # Try an empty client request in Check Point's parenthesis-heavy format
 
     r = sess.post('https://{}/clients/abc'.format(server), headers={'user-agent':'TRAC/986000125'}, data=b'(CCCclientRequest)')
     if r.content.startswith(b'(CCCserverResponse'):
@@ -53,6 +61,7 @@ sniffers = [
     ('AnyConnect/OpenConnect', anyconnect),
     ('Juniper Network Connect', juniper_nc),
     ('PAN GlobalProtect', global_protect),
+    ('Barracuda', barracuda),
     ('Check Point', check_point),
     ('SSTP', sstp),
 ]
