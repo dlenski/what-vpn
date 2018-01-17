@@ -2,11 +2,13 @@
 
 Identifies servers running various SSL VPNs. Currently it can recognize…
 
-* Cisco AnyConnect
-* [OpenConnect (ocserv)](https://en.wikipedia.org/wiki/OpenConnect)
+* Cisco AnyConnect and [OpenConnect (ocserv)](https://ocserv.gitlab.io/www)
 * Juniper Network Connect/Pulse
-* Microsoft SSTP
 * PAN GlobalProtect
+* Barracuda Networks
+* Check Point
+* Microsoft SSTP
+* [OpenVPN](https://openvpn.net/)
 
 ## Install
 
@@ -25,30 +27,35 @@ what-vpn: error: the following arguments are required: server
 ```sh
 $ what-vpn vpn.colorado.edu vpn.northeastern.edu \
 >   vpn.tnstate.edu sslvpn.uconn.edu vpn.cc.columbia.edu \
->   vpn.yale.edu ssl-vpn.***.com
+>   vpn.yale.edu vpn.drew.edu vpn.uca.edu \
+>   ssl-vpn.***.com
 vpn.colorado.edu: Cisco AnyConnect
 vpn.northeastern.edu: PAN GlobalProtect (portal)
 vpn.tnstate.edu: PAN GlobalProtect (portal and gateway)
 sslvpn.uconn.edu: Juniper Network Connect
 vpn.cc.columbia.edu: Cisco AnyConnect
 vpn.yale.edu: Cisco AnyConnect
+vpn.drew.edu: OpenVPN
+vpn.uca.edu: Barracuda
 ssl-vpn.***.com: no match
 
 $ what-vpn -v vpn.***.com
 
 Sniffing ***.***.com ...
-  Is it PAN GlobalProtect? no match
+  Is it AnyConnect/OpenConnect? OpenConnect
   Is it Juniper Network Connect? no match
+  Is it PAN GlobalProtect? no match
+  Is it Barracuda? no match
   Is it Check Point? no match
   Is it SSTP? no match
-  Is it AnyConnect/OpenConnect? OpenConnect
+  Is it OpenVPN? no match
   => OpenConnect
 ```
 
 ## TODO
 
 * Identify non-SSL VPNs? (e.g. IPSEC)
-* More SSL VPNs: Citrix, OpenVPN, etc.
+* Identify more SSL VPNs: Citrix, Dell/SonicWall, F5, and Forti
 * Identify specific versions or flavors of VPN servers?
 * Confidence levels?
 
