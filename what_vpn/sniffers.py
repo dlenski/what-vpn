@@ -36,7 +36,7 @@ def global_protect(sess, server):
 def juniper_nc(sess, server):
     # Juniper is frustrating because mostly it just spits out standard HTML, sometimes along with DS* cookies
 
-    r = sess.get('https://{}/'.format(server), headers={'user-agent':'ncsrv'})
+    r = sess.get('https://{}/dana-na'.format(server), headers={'user-agent':'ncsrv', 'NCP-Version': '3'})
     if urlsplit(r.url).path.startswith('/dana-na/auth/') or any(c.name.startswith('DS') for c in sess.cookies):
         return "Juniper Network Connect", None
 
