@@ -47,6 +47,8 @@ def main():
             hit = ex = None
             try:
                 hit = sniffer(s, server)
+                if hit:
+                    hit = ("%s (%s)" % hit) if hit[1] else hit[0]
             except rex.Timeout as e:
                 ex = 'timeout'
                 timeout += 1
