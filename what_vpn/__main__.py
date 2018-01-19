@@ -4,7 +4,7 @@ import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 from requests import exceptions as rex
-from .sniffers import sniffers
+from .sniffers import sniffers, Hit
 from .requests import SnifferSession
 import socket
 
@@ -40,17 +40,14 @@ def main():
         hits = []
         ssle = timeout = 0
         for sniffer in sniffers:
+            desc = sniffer.__doc__ or sniffer.__name__
             if args.verbose:
-                print("  Is it {}? ".format(sniffer.__doc__ or sniffer.__name__), end='')
-            s.cookies.clear()
+                print("  Is it {}? ".format(desc), end='')
 
+            s.cookies.clear()
             hit = ex = None
             try:
                 hit = sniffer(s, server)
-                if not isinstance(hit, tuple):
-                    hit = hit, None
-                if hit:
-                    hit = ("%s (%s)" % hit) if hit[1] else hit[0]
             except rex.Timeout as e:
                 ex = 'timeout'
                 timeout += 1
@@ -65,14 +62,17 @@ def main():
                 ex = 'no match'
 
             if hit:
-                hits.append(hit)
-                if not args.keep_going:
-                    break
+                if hit.details:
+                    desc += ' ({})'.format(hit.details)
+                hits.append(desc)
             if args.verbose:
-                print(hit or ex)
-        else:
-            if args.verbose:
-                print("  => ", end='')
+                print((hit.details or 'hit') if hit else ex)
+
+            if hit and not args.keep_going:
+                break
+
+        if args.verbose:
+            print("  => ", end='')
 
         if hits:
             print(', '.join(hits))
