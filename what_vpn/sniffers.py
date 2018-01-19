@@ -7,6 +7,7 @@ def _meaningless(x, *vals):
         return x
 
 def global_protect(sess, server):
+    '''PAN GlobalProtect'''
     # with closing(sess.get('https://{}/ssl-tunnel-connect.sslvpn'.format(server), stream=True)) as r:
     #    if r.status_code==502:
     #        components.append('gateway')
@@ -34,13 +35,15 @@ def global_protect(sess, server):
         return "PAN GlobalProtect unknown", version
 
 def juniper_nc(sess, server):
+    '''Juniper Network Connect'''
     # Juniper is frustrating because mostly it just spits out standard HTML, sometimes along with DS* cookies
 
     r = sess.get('https://{}/dana-na'.format(server), headers={'user-agent':'ncsrv', 'NCP-Version': '3'})
     if urlsplit(r.url).path.startswith('/dana-na/auth/') or any(c.name.startswith('DS') for c in sess.cookies):
-        return "Juniper Network Connect", None
+        return "Juniper Network Connect"
 
 def barracuda(sess, server):
+    '''Barracuda'''
     # Similar to Juniper
 
     r = sess.get('https://{}'.format(server))
@@ -49,6 +52,7 @@ def barracuda(sess, server):
         return "Barracuda", m and m.group(2)
 
 def check_point(sess, server):
+    '''Check Point'''
     version = hit = None
 
     # Try an empty client request in Check Point's parenthesis-heavy format
@@ -65,6 +69,7 @@ def check_point(sess, server):
         return "Check Point", version
 
 def sstp(sess, server):
+    '''SSTP'''
     # Yes, this is for real...
     # See section 3.2.4.1 of v17.0 doc at https://msdn.microsoft.com/en-us/library/cc247338.aspx
 
@@ -73,6 +78,7 @@ def sstp(sess, server):
             return "SSTP", _meaningless( r.headers.get('server'), "Microsoft-HTTPAPI/2.0" )
 
 def anyconnect(sess, server):
+    '''AnyConnect/OpenConnect'''
     # Try GET-tunnel (Cisco returns X-Reason, ocserv doesn't) and CONNECT-tunnel with bogus cookie (OpenConnect returns X-Reason)
     # "GET /+CSCOE+/logon.html" but this gives too many false positives.
 
@@ -82,19 +88,20 @@ def anyconnect(sess, server):
 
     with closing(sess.request('CONNECT', 'https://{}/CSCOSSLC/tunnel'.format(server), headers={'Cookie': 'webvpn='}, stream=True)) as r:
         if 'X-Reason' in r.headers:
-            return "OpenConnect ocserv", None
+            return "OpenConnect ocserv"
 
 def openvpn(sess, server):
+    '''OpenVPN'''
     r = sess.get('https://{}/'.format(server))
     if any(c.name.startswith('openvpn_sess_') for c in sess.cookies):
         return "OpenVPN", r.headers.get('server')
 
 sniffers = [
-    ('AnyConnect/OpenConnect', anyconnect),
-    ('Juniper Network Connect', juniper_nc),
-    ('PAN GlobalProtect', global_protect),
-    ('Barracuda', barracuda),
-    ('Check Point', check_point),
-    ('SSTP', sstp),
-    ('OpenVPN', openvpn),
+    anyconnect,
+    juniper_nc,
+    global_protect,
+    barracuda,
+    check_point,
+    sstp,
+    openvpn,
 ]

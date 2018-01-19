@@ -39,14 +39,16 @@ def main():
 
         hits = []
         ssle = timeout = 0
-        for desc, sniffer in sniffers:
+        for sniffer in sniffers:
             if args.verbose:
-                print("  Is it {}? ".format(desc), end='')
+                print("  Is it {}? ".format(sniffer.__doc__ or sniffer.__name__), end='')
             s.cookies.clear()
 
             hit = ex = None
             try:
                 hit = sniffer(s, server)
+                if not isinstance(hit, tuple):
+                    hit = hit, None
                 if hit:
                     hit = ("%s (%s)" % hit) if hit[1] else hit[0]
             except rex.Timeout as e:
