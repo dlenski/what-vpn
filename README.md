@@ -28,23 +28,25 @@ what-vpn: error: the following arguments are required: server
 
 ```sh
 $ what-vpn vpn.colorado.edu vpn.northeastern.edu \
->   vpn.tnstate.edu sslvpn.uconn.edu vpn.cc.columbia.edu \
->   vpn.yale.edu vpn.drew.edu vpn.uca.edu \
->   ssl-vpn.***.com
-vpn.colorado.edu: Cisco AnyConnect
+    vpn.tnstate.edu vpn.smith.edu vpn.caltech.edu \
+    vpn.yale.edu vpn.drew.edu vpn.uca.edu vpn.simmons.edu \
+    vpn.nl.edu vpn.***.edu
+vpn.colorado.edu: AnyConnect/OpenConnect (Cisco)
 vpn.northeastern.edu: PAN GlobalProtect (portal)
-vpn.tnstate.edu: PAN GlobalProtect (portal and gateway)
-sslvpn.uconn.edu: Juniper Network Connect
-vpn.cc.columbia.edu: Cisco AnyConnect
-vpn.yale.edu: Cisco AnyConnect
-vpn.drew.edu: OpenVPN
-vpn.uca.edu: Barracuda
+vpn.tnstate.edu: PAN GlobalProtect (portal+gateway)
+vpn.smith.edu: Juniper Network Connect
+vpn.caltech.edu: AnyConnect/OpenConnect (Cisco, ASA (9.1(6)6))
+vpn.yale.edu: AnyConnect/OpenConnect (Cisco, ASA (8.4(5)))
+vpn.drew.edu: OpenVPN (OpenVPN-AS)
+vpn.uca.edu: Barracuda (2017)
+vpn.simmons.edu: Check Point (2015, 20%)
+vpn.nl.edu: Check Point
 ssl-vpn.***.com: no match
 
 $ what-vpn -v vpn.***.com
 
 Sniffing ***.***.com ...
-  Is it AnyConnect/OpenConnect? OpenConnect
+  Is it AnyConnect/OpenConnect? AnyConnect/OpenConnect (ocserv)
   Is it Juniper Network Connect? no match
   Is it PAN GlobalProtect? no match
   Is it Barracuda? no match
@@ -59,7 +61,7 @@ Sniffing ***.***.com ...
 * Identify non-SSL VPNs? (e.g. IPSEC)
 * Identify more SSL VPNs: Citrix, Dell/SonicWall, F5, and Forti
 * Identify specific versions or flavors of VPN servers?
-* Confidence levels?
+* Better confidence levels?
 
 ## License
 
