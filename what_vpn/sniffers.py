@@ -133,6 +133,16 @@ def openvpn(sess, server):
     if any(c.name.startswith('openvpn_sess_') for c in sess.cookies):
         return Hit(version=r.headers.get('server'))
 
+def fortinet(sess, server):
+    '''Fortinet'''
+
+    # server sets *empty* SVPNCOOKIE/SVPNNETWORKCOOKIE
+    r = sess.get('https://{}/remote/login'.format(server))
+    if r.headers.get('set-cookie','').startswith('SVPNCOOKIE'):
+        server = r.headers.get('server')
+        confidence = 1.0 if server=='xxxxxxxx-xxxxx' else 0.9
+        return Hit(confidence=confidence, version=_meaningless(server,'xxxxxxxx-xxxxx'))
+
 sniffers = [
     anyconnect,
     juniper_nc,
@@ -141,4 +151,5 @@ sniffers = [
     check_point,
     sstp,
     openvpn,
+    fortinet,
 ]

@@ -11,6 +11,7 @@ Identifies servers running various SSL VPNs. Currently it can recognize…
 * Check Point
 * Microsoft SSTP
 * [OpenVPN](https://openvpn.net/)
+* Fortinet
 
 ## Install
 
@@ -59,7 +60,7 @@ Sniffing ***.***.com ...
 ## TODO
 
 * Identify non-SSL VPNs? (e.g. IPSEC)
-* Identify more SSL VPNs: Citrix, Dell/SonicWall, F5, and Forti
+* Identify more SSL VPNs: Citrix, Dell/SonicWall, F5 … any others?
 * Identify specific versions or flavors of VPN servers?
 * Better confidence levels?
 
