@@ -30,6 +30,10 @@ def _meaningless(x, *vals):
     if x not in vals:
         return x
 
+#####
+# Sniffers based on protocol details
+#####
+
 def global_protect(sess, server):
     '''PAN GlobalProtect'''
     # with closing(sess.get('https://{}/ssl-tunnel-connect.sslvpn'.format(server), stream=True)) as r:
@@ -52,38 +56,6 @@ def global_protect(sess, server):
 
     if hit:
         return Hit(components=components, version=_meaningless(version, '1'))
-
-# Juniper is frustrating because mostly it just spits out standard HTML, sometimes along with DS* cookies
-def juniper_nc(sess, server):
-    '''Juniper Network Connect'''
-
-    confidence = None
-    r = sess.get('https://{}/dana-na'.format(server), headers={'user-agent':'ncsrv', 'NCP-Version': '3'})
-    if any(c.name.startswith('DS') for c in sess.cookies):
-        confidence = 1.0
-    elif urlsplit(r.url).path.startswith('/dana-na/auth/'):
-        confidence = 0.8
-
-    return confidence and Hit(confidence=confidence)
-
-# Similar to Juniper
-def barracuda(sess, server):
-    '''Barracuda'''
-
-    r = sess.get('https://{}'.format(server))
-
-    m = re.search(rb'(\d+-)?(\d+)\s+Barracuda Networks', r.content)
-    version = m and m.group(2).decode()
-
-    confidence = None
-    if 'SSLX_SSESHID' in sess.cookies:
-        confidence = 1.0
-    elif urlsplit(r.url).path.startswith('/default/showLogon.do'):
-        confidence = 0.9 if version else 0.8
-    elif version:
-        confidence = 0.2
-
-    return confidence and Hit(version=version, confidence=confidence)
 
 def check_point(sess, server):
     '''Check Point'''
@@ -127,11 +99,45 @@ def anyconnect(sess, server):
         elif r.raw.read(9)==b'X-Reason:':
             return Hit(name="ocserv", version='0.8.0-0.11.6')
 
+#####
+# Sniffers based on behavior of web front-end
+#####
+
 def openvpn(sess, server):
     '''OpenVPN'''
     r = sess.get('https://{}/'.format(server))
     if any(c.name.startswith('openvpn_sess_') for c in sess.cookies):
         return Hit(version=r.headers.get('server'))
+
+def juniper_nc(sess, server):
+    '''Juniper Network Connect'''
+
+    confidence = None
+    r = sess.get('https://{}/dana-na'.format(server), headers={'user-agent':'ncsrv', 'NCP-Version': '3'})
+    if any(c.name.startswith('DS') for c in sess.cookies):
+        confidence = 1.0
+    elif urlsplit(r.url).path.startswith('/dana-na/auth/'):
+        confidence = 0.8
+
+    return confidence and Hit(confidence=confidence)
+
+def barracuda(sess, server):
+    '''Barracuda'''
+
+    r = sess.get('https://{}'.format(server))
+
+    m = re.search(rb'(\d+-)?(\d+)\s+Barracuda Networks', r.content)
+    version = m and m.group(2).decode()
+
+    confidence = None
+    if 'SSLX_SSESHID' in sess.cookies:
+        confidence = 1.0
+    elif urlsplit(r.url).path.startswith('/default/showLogon.do'):
+        confidence = 0.9 if version else 0.8
+    elif version:
+        confidence = 0.2
+
+    return confidence and Hit(version=version, confidence=confidence)
 
 def fortinet(sess, server):
     '''Fortinet'''
