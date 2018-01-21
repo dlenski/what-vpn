@@ -114,16 +114,18 @@ def sstp(sess, server):
 
 def anyconnect(sess, server):
     '''AnyConnect/OpenConnect'''
-    # Try GET-tunnel (Cisco returns X-Reason, ocserv doesn't) and CONNECT-tunnel with bogus cookie (OpenConnect returns X-Reason)
-    # "GET /+CSCOE+/logon.html" but this gives too many false positives.
 
+    # Cisco returns X-Reason in response to GET-tunnel...
     r = sess.get('https://{}/CSCOSSLC/tunnel'.format(server))
     if 'X-Reason' in r.headers:
         return Hit(name="Cisco", version=r.headers.get('server'))
 
     with closing(sess.request('CONNECT', 'https://{}/CSCOSSLC/tunnel'.format(server), headers={'Cookie': 'webvpn='}, stream=True)) as r:
-        if 'X-Reason' in r.headers:
-            return Hit(name="ocserv")
+        if r.reason=='Cookie is not acceptable':
+            return Hit(name="ocserv", version='0.11.7+')
+        # ... whereas ocserv 7e06e1ac...3feec670 inadvertently sends X-Reason header in the *body*
+        elif r.raw.read(9)==b'X-Reason:':
+            return Hit(name="ocserv", version='0.8.0-0.11.6')
 
 def openvpn(sess, server):
     '''OpenVPN'''
