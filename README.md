@@ -21,7 +21,7 @@ Requires Python 3, `pip`, and [`requests`](https://docs.python-requests.org):
 $ pip3 install https://github.com/dlenski/what-vpn/archive/master.zip
 ...
 $ what-vpn
-usage: what-vpn [-h] [-v] [-1] [-t SEC] server [server ...]
+usage: what-vpn [-h] [-k] [-t SEC] [-v | -c] server [server ...]
 what-vpn: error: the following arguments are required: server
 ```
 

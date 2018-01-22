@@ -11,15 +11,22 @@ import socket
 import argparse
 import os
 import re
-from sys import stderr
+import csv
+from sys import stderr, stdout
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument('-v','--verbose', default=0, action='count')
     p.add_argument('-k','--keep-going', action='store_true', help='Keep going after first hit')
     p.add_argument('-t','--timeout', metavar='SEC', type=lambda x: int(x) or None, default=10, help='Timeout in seconds (default %(default)s, 0 for none)')
+    x = p.add_mutually_exclusive_group()
+    x.add_argument('-v','--verbose', default=0, action='count')
+    x.add_argument('-c','--csv', action='store_true', help='Output report in CSV format')
     p.add_argument('server', nargs='+', help='suspected SSL-VPN server')
     args = p.parse_args()
+
+    if args.csv:
+        wr = csv.writer(stdout)
+        wr.writerow(('Server','Errors','Sniffer','Confidence','Name','Version','Components'))
 
     s = SnifferSession()
     s.timeout = args.timeout
@@ -27,14 +34,17 @@ def main():
     for server in args.server:
         if args.verbose:
             print("\nSniffing {} ...".format(server))
-        else:
+        if not args.csv:
             print("{}: ".format(server), end='')
 
         domain = server.split(':', 1)[0]
         try:
             socket.gethostbyname(domain)
         except socket.error:
-            print("DNS lookup failed")
+            if args.csv:
+                wr.writerow((server, "DNS lookup failed"))
+            else:
+                print("DNS lookup failed")
             continue
 
         hits = []
@@ -62,7 +72,9 @@ def main():
                 ex = 'no match'
 
             if hit:
-                if hit.details:
+                if args.csv:
+                    wr.writerow((server, None, sniffer.__name__, hit.confidence, hit.name, hit.version, hit.components and '+'.join(hit.components)))
+                elif hit.details:
                     desc += ' ({})'.format(hit.details)
                 hits.append(desc)
             if args.verbose:
@@ -74,14 +86,17 @@ def main():
         if args.verbose:
             print("  => ", end='')
 
-        if hits:
-            print(', '.join(hits))
-        elif ssle:
-            print('SSL errors')
+        if ssle:
+            errs = 'SSL errors'
         elif timeout:
-            print('timeout')
-        else:
-            print('no match')
+            errs = 'timeout'
+        elif not hits:
+            errs = 'no match'
+
+        if args.csv and not hits:
+            wr.writerow((server, errs))
+        elif not args.csv:
+            print(', '.join(hits) or errs)
 
 ########################################
 
