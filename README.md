@@ -59,7 +59,7 @@ Sniffing ***.***.com ...
 
 ## TODO
 
-* Identify non-SSL VPNs? (e.g. IPSEC)
+* Identify non-SSL VPNs? (e.g. IPSEC, à la [ike-scan](//github.com/royhills/ike-scan))
 * Identify more SSL VPNs: Citrix, Dell/SonicWall, F5 … any others?
 * Identify specific versions or flavors of VPN servers?
 * Better confidence levels?

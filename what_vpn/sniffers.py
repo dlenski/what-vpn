@@ -119,7 +119,7 @@ def juniper_nc(sess, server):
     elif urlsplit(r.url).path.startswith('/dana-na/auth/'):
         confidence = 0.8
 
-    return confidence and Hit(confidence=confidence)
+    return confidence and Hit(confidence=confidence, version=r.headers.get('NCP-Version'))
 
 def barracuda(sess, server):
     '''Barracuda'''
