@@ -7,6 +7,8 @@ from requests import exceptions as rex
 from .sniffers import sniffers, Hit
 from .requests import SnifferSession
 import socket
+import logging
+import http.client
 
 import argparse
 import os
@@ -22,7 +24,12 @@ def main():
     x.add_argument('-v','--verbose', default=0, action='count')
     x.add_argument('-c','--csv', action='store_true', help='Output report in CSV format')
     p.add_argument('server', nargs='+', help='suspected SSL-VPN server')
+    p.add_argument('-L','--logging', action='store_true', help='Detailed logging for requests and httplib')
     args = p.parse_args()
+
+    if args.logging:
+        http.client.HTTPConnection.debuglevel = 99
+        logging.basicConfig(level=logging.DEBUG)
 
     if args.csv:
         wr = csv.writer(stdout)
