@@ -2,7 +2,9 @@
 
 # what-vpn
 
-Identifies servers running various SSL VPNs. Currently it can recognize…
+Identifies servers running various SSL VPNs. (They should really be called
+"TLS-based" VPNs, but "SSL VPN" has become the de facto standard jargon.)
+Currently it can recognize…
 
 * Cisco AnyConnect and [OpenConnect (ocserv)](https://ocserv.gitlab.io/www)
 * Juniper Network Connect/Pulse
@@ -31,7 +33,7 @@ what-vpn: error: the following arguments are required: server
 $ what-vpn vpn.colorado.edu vpn.northeastern.edu \
     vpn.tnstate.edu vpn.smith.edu vpn.caltech.edu \
     vpn.yale.edu vpn.drew.edu vpn.uca.edu vpn.simmons.edu \
-    vpn.nl.edu vpn.***.edu
+    vpn.nl.edu ssl-vpn.***.com
 vpn.colorado.edu: AnyConnect/OpenConnect (Cisco)
 vpn.northeastern.edu: PAN GlobalProtect (portal)
 vpn.tnstate.edu: PAN GlobalProtect (portal+gateway)
@@ -59,7 +61,7 @@ Sniffing ***.***.com ...
 
 ## TODO
 
-* Identify non-SSL VPNs? (e.g. IPSEC, à la [ike-scan](//github.com/royhills/ike-scan))
+* Identify non-SSL/TLS-based VPNs? (e.g. IPSEC, à la [ike-scan](//github.com/royhills/ike-scan))
 * Identify more SSL VPNs: Citrix, Dell/SonicWall, F5 … any others?
 * Identify specific versions or flavors of VPN servers?
 * Better confidence levels?

@@ -95,7 +95,7 @@ def anyconnect(sess, server):
     with closing(sess.request('CONNECT', 'https://{}/CSCOSSLC/tunnel'.format(server), headers={'Cookie': 'webvpn='}, stream=True)) as r:
         if r.reason=='Cookie is not acceptable':
             return Hit(name="ocserv", version='0.11.7+')
-        # ... whereas ocserv 7e06e1ac...3feec670 inadvertently sends X-Reason header in the *body*
+        # ... whereas ocserv 7e06e1ac..3feec670 inadvertently sends X-Reason header in the *body*
         elif r.raw.read(9)==b'X-Reason:':
             return Hit(name="ocserv", version='0.8.0-0.11.6')
 
@@ -124,7 +124,7 @@ def juniper_nc(sess, server):
 def barracuda(sess, server):
     '''Barracuda'''
 
-    r = sess.get('https://{}'.format(server))
+    r = sess.get('https://{}/'.format(server))
 
     m = re.search(rb'(\d+-)?(\d+)\s+Barracuda Networks', r.content)
     version = m and m.group(2).decode()
