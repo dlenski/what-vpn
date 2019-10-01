@@ -6,6 +6,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from requests import exceptions as rex
 from .sniffers import sniffers, Hit
 from .requests import SnifferSession
+from .version import __version__
 import socket
 import logging
 import http.client
@@ -25,6 +26,7 @@ def main():
     x.add_argument('-c','--csv', action='store_true', help='Output report in CSV format')
     p.add_argument('server', nargs='+', help='suspected SSL-VPN server')
     p.add_argument('-L','--logging', action='store_true', help='Detailed logging for requests and httplib')
+    p.add_argument('-V','--version', action='version', version='%(prog)s ' + __version__)
     args = p.parse_args()
 
     if args.logging:

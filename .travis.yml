@@ -2,6 +2,8 @@ notifications:
   email:
     false
 
+sudo: false
+
 language: python
 
 python:
@@ -15,3 +17,12 @@ install:
 
 script:
   - python3 setup.py test
+
+deploy:
+  provider: pypi
+  user: moxfyre
+  password:
+    secure: h7/W4ObQXgzFECJJFRqeeudOhvAa78JzMaYnG9kuEyC73zLLoR8/KMd+lLBaZ0LTgmIFdeOdaQV38GrdVgJsiu4Tto5WSfkR3CjFFJ7QIKDobtVzkDe2N+AgeHICWxp7MFP4v59hUGr+fvRK9YcsIPCdv7+glksaLNbB/RC6QjNB8qWUEIxca8RBUp+FkHi3UE6uSsD7ajLbaZqRXKVzoWHb6rHuqm5OlqvJrwQ5INL4osR3fQn7L8n16A5/eYq4YB2kMzpkezyNFFJG0Knr7NtOBAmElWRCVu/1KExy+dxdJ3ijrzoInEXyJZSOrBHwPHaqwb9Q9PRyWgq4kvNJfyqwO6YLMpX25o2ZdiDRRsvWB0KZ9aHfBa3gZl9w7/ze342ZEwbwRCHrNYeIx4pp/W2GaCxCUfbCfuWGB8TZ+GddlxvdgdKNimVH/QvKwtiH/7vb5A+hOVsMGGIEjzbkP5Vlu2KPK6OsbosgWyCKXOYu/Sl43HzF2yI9IM9HXjvlgXzgJtA+RQyALWH3a3zZYzam6dvxF436R8rVhfBDkArOBw9rPHzuNwa3aT6Rvq6gwmflR/0MYxYc7iXn95ezga5Mk4JjxvmyW2w2pBjDUAqGKJEqQLan1Qxqk7G65YLhn0CdbboonJZeWaogmtET2HIJzuPmy3JJp8Q7m/z1UV4=
+  on:
+    tags: true
+    repo: dlenski/what-vpn
