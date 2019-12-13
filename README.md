@@ -61,6 +61,44 @@ Sniffing ***.***.com ...
   => OpenConnect
 ```
 
+# Interesting results
+
+An interesting question for the open source community, including the indispensable
+[OpenConnect](https://www.infradead.org/openconnect) (which I also contribute to) is…
+
+> What are the most commonly-used SSL VPN protocols in the real world?
+
+In April 2019, I took a list of major universities and companies in the USA, and
+generated some guesses for the hostnames of their VPN endpoints
+(e.g. `{vpn,ssl-vpn,sslvpn}.*.{edu,com}`). I then used `what-vpn` to probe them all
+and looked at the subset of the results that matched to an identifiable SSL
+VPN protocol:
+
+```
+  1  Check Point
+  1  Citrix (manually inspected, don't know how to reliably autodetect)
+  1  OpenVPN
+  5  Dell or SonicWall (manually inspected, don't know how to
+reliably autodetect)
+  7  Fortinet
+  7  Barracuda
+  8  F5 (manually inspected, don't know how to reliably autodetect)
+ 14  SSTP
+ 53  PAN GlobalProtect (portal and/or gateway)
+ 72  Juniper Network Connect (or Junos/Pulse, hard to distinguish)
+243  Cisco AnyConnect (including 1 ocserv)
+```
+
+Assuming these results are roughly representative of “SSL VPN” deployments
+_in general_ (at least in the USA), they show that OpenConnect already supports
+the top 3 most commonly-encountered SSL VPN protocols, or about 80% of SSL VPNs.
+Additionally Microsoft SSTP is supported by the open-source
+[`sstp-client`](http://sstp-client.sourceforge.net),
+and of course OpenVPN is well-supported by open-source clients as well.
+
+_(Excerpted from 
+[this post on the OpenConnect mailing list](https://lists.infradead.org/pipermail/openconnect-devel/2019-April/005335.html))_
+
 ## TODO
 
 * Identify non-SSL/TLS-based VPNs? (e.g. IPSEC, à la [ike-scan](//github.com/royhills/ike-scan))
