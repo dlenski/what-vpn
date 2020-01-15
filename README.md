@@ -35,7 +35,7 @@ what-vpn: error: the following arguments are required: server
 $ what-vpn vpn.colorado.edu vpn.northeastern.edu \
     vpn.tnstate.edu vpn.smith.edu vpn.caltech.edu \
     vpn.yale.edu vpn.drew.edu vpn.uca.edu vpn.simmons.edu \
-    vpn.nl.edu ssl-vpn.***.com
+    vpn.nl.edu cpvpn.its.hawaii.edu ssl-vpn.***.com
 vpn.colorado.edu: AnyConnect/OpenConnect (Cisco)
 vpn.northeastern.edu: PAN GlobalProtect (portal)
 vpn.tnstate.edu: PAN GlobalProtect (portal+gateway)
@@ -46,19 +46,20 @@ vpn.drew.edu: OpenVPN (OpenVPN-AS)
 vpn.uca.edu: Barracuda (2017)
 vpn.simmons.edu: Check Point (2015, 20%)
 vpn.nl.edu: Check Point
+cpvpn.its.hawaii.edu: Check Point
 ssl-vpn.***.com: no match
 
-$ what-vpn -v vpn.***.com
+$ what-vpn -kv vpn.***.com
 
 Sniffing ***.***.com ...
-  Is it AnyConnect/OpenConnect? AnyConnect/OpenConnect (ocserv)
+  Is it AnyConnect/OpenConnect? ocserv, 0.8.0-0.11.6
   Is it Juniper Network Connect? no match
   Is it PAN GlobalProtect? no match
   Is it Barracuda? no match
   Is it Check Point? no match
   Is it SSTP? no match
   Is it OpenVPN? no match
-  => OpenConnect
+  => AnyConnect/OpenConnect (ocserv, 0.8.0-0.11.6)
 ```
 
 # Interesting results

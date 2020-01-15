@@ -11,7 +11,7 @@ from what_vpn.sniffers import Hit, sniffers
 session = SnifferSession()
 session.timeout = 10
 
-matched_vpns = ['vpn.{}.edu'.format(d) for d in ('drew','syr','andrews','northeastern','yale','fau','uca','nwciowa','simmons','nl','ycp','smcvt','louisville','usmma')]
+matched_vpns = ['vpn.{}.edu'.format(d) for d in ('drew','syr','andrews','northeastern','yale','fau','uca','nwciowa','simmons','nl','ycp','smcvt','louisville','usmma')] + ['cpvpn.its.hawaii.edu']
 unmatched_vpns = ['vpn.{}.edu'.format(d) for d in ('acu','aurora','brown','wisc','whitworth','valpo','uu')]
 
 def _count_hits(server):
