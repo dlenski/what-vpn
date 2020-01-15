@@ -43,7 +43,7 @@ def main():
     for server in args.server:
         if args.verbose:
             print("\nSniffing {} ...".format(server))
-        if not args.csv:
+        elif not args.csv:
             print("{}: ".format(server), end='')
 
         domain = server.split(':', 1)[0]
