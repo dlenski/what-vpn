@@ -40,7 +40,7 @@ def global_protect(sess, server):
     #    if r.status_code==502:
     #        components.append('gateway')
 
-    components = set()
+    components = []
     version = hit = None
 
     for component, path in (('portal','global-protect'), ('gateway','ssl-vpn')):
@@ -48,16 +48,16 @@ def global_protect(sess, server):
         if r.headers.get('content-type','').startswith('application/xml') and b'<prelogin-response>' in r.content:
             hit = True
 
+            if b'<status>Success</status>' in r.content:
+                components.append(component)
+            elif b'<status>Error</status>' in r.content and b'<msg>Valid client certificate is required</msg>' in r.content:
+                components.append(component)
+                components.append(component+' wants ccert')
+
             m = re.search(rb'<saml-auth-method>([^<]+)</saml-auth-method>', r.content)
             if m:
                 saml = '%s wants SAML %s' % (component, m.group(1).decode())
-                components.add(saml)
-
-            if b'<status>Success</status>' in r.content:
-                components.add(component)
-            elif b'<status>Error</status>' in r.content and b'<msg>Valid client certificate is required</msg>' in r.content:
-                components.add(component)
-                components.add(component+' wants ccert')
+                components.append(saml)
 
             m = re.search(rb'<panos-version>([^<]+)</panos-version>', r.content)
             if m:
@@ -96,7 +96,7 @@ def sstp(sess, server):
 def anyconnect(sess, server):
     '''AnyConnect/OpenConnect'''
 
-    components = set()
+    components = []
 
     # Use XML-post auth to check for client cert requirement
     r = sess.post('https://{}/'.format(server),
@@ -106,7 +106,7 @@ def anyconnect(sess, server):
                   '<version who="vpn"/><device-id/>'
                   '<group-access>{}</group-access></config-auth>'.format(server))
     if b'<client-cert-request' in r.content:
-        components.add('wants ccert')
+        components.append('wants ccert')
 
     with closing(sess.request('CONNECT', 'https://{}/CSCOSSLC/tunnel'.format(server), headers={'Cookie': 'webvpn='}, stream=True)) as r:
         # Cisco returns X-Reason in response to bad CONNECT-tunnel request (GET works too)...
