@@ -50,13 +50,14 @@ def global_protect(sess, server):
 
             m = re.search(rb'<saml-auth-method>([^<]+)</saml-auth-method>', r.content)
             if m:
-                saml = 'SAML %s' % m.group(1).decode()
+                saml = '%s wants SAML %s' % (component, m.group(1).decode())
                 components.add(saml)
 
             if b'<status>Success</status>' in r.content:
                 components.add(component)
             elif b'<status>Error</status>' in r.content and b'<msg>Valid client certificate is required</msg>' in r.content:
-                components.add('cert required')
+                components.add(component)
+                components.add(component+' wants ccert')
 
             m = re.search(rb'<panos-version>([^<]+)</panos-version>', r.content)
             if m:
