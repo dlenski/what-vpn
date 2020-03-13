@@ -1,5 +1,6 @@
 from contextlib import closing
 from urllib.parse import urlsplit
+from requests import exceptions as rex
 import re
 import attr
 
@@ -99,14 +100,17 @@ def anyconnect(sess, server):
     components = []
 
     # Use XML-post auth to check for client cert requirement
-    r = sess.post('https://{}/'.format(server),
-                  headers={'X-Aggregate-Auth':'1', 'X-Transcend-Version':'1'}, data=
-                  '<?xml version="1.0" encoding="UTF-8"?>\n'
-                  '<config-auth client="vpn" type="init">'
-                  '<version who="vpn"/><device-id/>'
-                  '<group-access>{}</group-access></config-auth>'.format(server))
-    if b'<client-cert-request' in r.content:
-        components.append('wants ccert')
+    try:
+        r = sess.post('https://{}/'.format(server),
+                      headers={'X-Aggregate-Auth':'1', 'X-Transcend-Version':'1'}, data=
+                      '<?xml version="1.0" encoding="UTF-8"?>\n'
+                      '<config-auth client="vpn" type="init">'
+                      '<version who="vpn"/><device-id/>'
+                      '<group-access>{}</group-access></config-auth>'.format(server))
+        if b'<client-cert-request' in r.content:
+            components.append('wants ccert')
+    except rex.ChunkedEncodingError:
+        pass # some servers barf on this
 
     with closing(sess.request('CONNECT', 'https://{}/CSCOSSLC/tunnel'.format(server), headers={'Cookie': 'webvpn='}, stream=True)) as r:
         # Cisco returns X-Reason in response to bad CONNECT-tunnel request (GET works too)...
