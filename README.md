@@ -79,8 +79,7 @@ VPN protocol:
   1  Check Point
   1  Citrix (manually inspected, don't know how to reliably autodetect)
   1  OpenVPN
-  5  Dell or SonicWall (manually inspected, don't know how to
-reliably autodetect)
+  5  Dell or SonicWall (manually inspected, don't know how to reliably autodetect)
   7  Fortinet
   7  Barracuda
   8  F5 (manually inspected, don't know how to reliably autodetect)
