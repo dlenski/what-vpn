@@ -45,7 +45,7 @@ def global_protect(sess, server):
     version = hit = None
 
     for component, path in (('portal','global-protect'), ('gateway','ssl-vpn')):
-        r = sess.get('https://{}/{}/prelogin.esp'.format(server, path), headers={'user-agent':'PAN GlobalProtect'})
+        r = sess.post('https://{}/{}/prelogin.esp?tmp=tmp&clientVer=4100&clientos=Windows'.format(server, path), headers={'user-agent':'PAN GlobalProtect'})
         if r.headers.get('content-type','').startswith('application/xml') and b'<prelogin-response>' in r.content:
             hit = True
 
