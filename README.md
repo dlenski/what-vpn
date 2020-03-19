@@ -16,6 +16,7 @@ Currently it can recognize…
 * Microsoft SSTP
 * [OpenVPN](https://openvpn.net/)
 * Fortinet
+* Array Networks
 
 ## Install
 
@@ -47,6 +48,7 @@ vpn.uca.edu: Barracuda (2017)
 vpn.simmons.edu: Check Point (2015, 20%)
 vpn.nl.edu: Check Point
 cpvpn.its.hawaii.edu: Check Point
+vpn.***.com: Array Networks (40%)
 ssl-vpn.***.com: no match
 
 $ what-vpn -kv vpn.***.com

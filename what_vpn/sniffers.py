@@ -172,6 +172,21 @@ def fortinet(sess, server):
         confidence = 1.0 if server=='xxxxxxxx-xxxxx' else 0.9
         return Hit(confidence=confidence, version=_meaningless(server,'xxxxxxxx-xxxxx'))
 
+def array_networks(sess, server):
+    '''Array Networks'''
+
+    r = sess.get('https://{}/'.format(server))
+
+    confidence = 0
+    if re.match(r'/prx/\d\d\d/', urlsplit(r.url).path):
+        confidence += 0.1
+        if b'array networks' in r.content.lower() or b'arraynetworks' in r.content.lower():
+            confidence += 0.1
+        if b'_AN_global_var_init' in r.content:
+            confidence += 0.2
+
+    return confidence and Hit(confidence=confidence)
+
 sniffers = [
     anyconnect,
     juniper_nc,
@@ -181,4 +196,5 @@ sniffers = [
     sstp,
     openvpn,
     fortinet,
+    array_networks,
 ]

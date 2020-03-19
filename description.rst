@@ -13,6 +13,7 @@ Currently it can recognize…
 - Microsoft SSTP
 - `OpenVPN <https://openvpn.net/>`__
 - Fortinet
+- Array Networks
 
 Examples
 --------
@@ -33,6 +34,7 @@ Examples
     vpn.uca.edu: Barracuda (2017)
     vpn.simmons.edu: Check Point (2015, 20%)
     vpn.nl.edu: Check Point
+    vpn.***.com: Array Networks (40%)
     ssl-vpn.***.com: no match
 
     $ what-vpn -v vpn.***.com
