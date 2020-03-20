@@ -122,6 +122,22 @@ def anyconnect(sess, server):
         elif r.raw.read(9)==b'X-Reason:':
             return Hit(name="ocserv", version='0.8.0-0.11.6', components=components)
 
+def juniper_pulse(sess, server):
+    '''Juniper/Pulse'''
+
+    with closing(sess.get('https://{}/'.format(server), headers={'Content-Type':'EAP', 'Upgrade':'IF-T/TLS 1.0', 'Content-Length': '0'}, stream=True)) as r:
+        if r.status_code == 101:
+            return Hit(name='Pulse Secure', version=r.headers.get('NCP-Version'))
+
+    confidence = None
+    r = sess.get('https://{}/dana-na'.format(server), headers={'user-agent':'ncsrv', 'NCP-Version': '3'})
+    if any(c.name.startswith('DS') for c in sess.cookies):
+        confidence = 1.0
+    elif urlsplit(r.url).path.startswith('/dana-na/auth/'):
+        confidence = 0.8
+
+    return confidence and Hit(name='Juniper NC', confidence=confidence, version=r.headers.get('NCP-Version'))
+
 #####
 # Sniffers based on behavior of web front-end
 #####
@@ -131,18 +147,6 @@ def openvpn(sess, server):
     r = sess.get('https://{}/'.format(server))
     if any(c.name.startswith('openvpn_sess_') for c in sess.cookies):
         return Hit(version=r.headers.get('server'))
-
-def juniper_nc(sess, server):
-    '''Juniper Network Connect'''
-
-    confidence = None
-    r = sess.get('https://{}/dana-na'.format(server), headers={'user-agent':'ncsrv', 'NCP-Version': '3'})
-    if any(c.name.startswith('DS') for c in sess.cookies):
-        confidence = 1.0
-    elif urlsplit(r.url).path.startswith('/dana-na/auth/'):
-        confidence = 0.8
-
-    return confidence and Hit(confidence=confidence, version=r.headers.get('NCP-Version'))
 
 def barracuda(sess, server):
     '''Barracuda'''
@@ -189,7 +193,7 @@ def array_networks(sess, server):
 
 sniffers = [
     anyconnect,
-    juniper_nc,
+    juniper_pulse,
     global_protect,
     barracuda,
     check_point,

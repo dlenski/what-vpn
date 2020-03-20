@@ -1,5 +1,7 @@
 import urllib3
+import warnings
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+warnings.simplefilter('ignore', category=ResourceWarning)
 
 import logging
 from requests import exceptions as rex
