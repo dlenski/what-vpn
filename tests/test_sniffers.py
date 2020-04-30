@@ -31,6 +31,7 @@ matched_vpns = ['vpn.{}.edu'.format(d) for d in (
     'yonyou',
     )] + [
     'cpvpn.its.hawaii.edu',
+    '[2620:0:e00:4e::2]', # https://dns.google/query?name=vpn.cites.illinois.edu&type=AAAA
     ]
 unmatched_vpns = ['vpn.{}.edu'.format(d) for d in (
     'acu',

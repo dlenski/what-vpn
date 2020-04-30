@@ -10,6 +10,7 @@ from .version import __version__
 import socket
 import logging
 import http.client
+from ipaddress import ip_address
 
 import argparse
 import os
@@ -46,15 +47,22 @@ def main():
         elif not args.csv:
             print("{}: ".format(server), end='')
 
-        domain = server.split(':', 1)[0]
+        if server.startswith('[') and ']' in server:
+            # IPv6 address?
+            domain = server[1:].split(']', 1)[0]
+        else:
+            domain = server.split(':', 1)[0]
         try:
-            socket.gethostbyname(domain)
-        except socket.error:
-            if args.csv:
-                wr.writerow((server, "DNS lookup failed"))
-            else:
-                print("DNS lookup failed")
-            continue
+            ip_address(domain)
+        except ValueError:
+            try:
+                socket.gethostbyname(domain)
+            except socket.error:
+                if args.csv:
+                    wr.writerow((server, "DNS lookup failed"))
+                else:
+                    print("DNS lookup failed")
+                continue
 
         hits = []
         ssle = timeout = 0
