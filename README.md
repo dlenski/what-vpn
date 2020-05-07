@@ -17,6 +17,7 @@ Currently it can recognize…
 * [OpenVPN](https://openvpn.net/)
 * Fortinet
 * Array Networks
+* F5 BigIP
 
 ## Install
 
@@ -84,7 +85,7 @@ VPN protocol:
   5  Dell or SonicWall (manually inspected, don't know how to reliably autodetect)
   7  Fortinet
   7  Barracuda
-  8  F5 (manually inspected, don't know how to reliably autodetect)
+  8  F5 (manually inspected, didn't know how to reliably autodetect at this time)
  14  SSTP
  53  PAN GlobalProtect (portal and/or gateway)
  72  Juniper Network Connect (or Junos/Pulse, hard to distinguish)
@@ -98,13 +99,13 @@ Additionally Microsoft SSTP is supported by the open-source
 [`sstp-client`](http://sstp-client.sourceforge.net),
 and of course OpenVPN is well-supported by open-source clients as well.
 
-_(Excerpted from 
+_(Excerpted from
 [this post on the OpenConnect mailing list](https://lists.infradead.org/pipermail/openconnect-devel/2019-April/005335.html))_
 
 ## TODO
 
 * Identify non-SSL/TLS-based VPNs? (e.g. IPSEC, à la [ike-scan](//github.com/royhills/ike-scan))
-* Identify more SSL VPNs: Citrix, Dell/SonicWall, F5 … any others?
+* Identify more SSL VPNs: Citrix, Dell/SonicWall… any others?
 * Identify specific versions or flavors of VPN servers?
 * Better confidence levels?
 

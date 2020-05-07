@@ -191,6 +191,19 @@ def array_networks(sess, server):
 
     return confidence and Hit(confidence=confidence)
 
+def f5_bigip(sess, server):
+    '''F5 BigIP'''
+
+    r = sess.get('https://{}/my.policy'.format(server))
+
+    confidence = 0.1 * sum(x in r.headers.get('set-cookie','') for x in ('MRHSession', 'LastMRH_Session', 'F5_'))
+    if urlsplit(r.url).path.startswith('/my.logout'):
+        confidence += 0.5
+    if r.headers.get('server','') == 'BigIP':
+        confidence += 0.2
+
+    return confidence and Hit(confidence=confidence)
+
 sniffers = [
     anyconnect,
     juniper_pulse,
@@ -201,4 +214,5 @@ sniffers = [
     openvpn,
     fortinet,
     array_networks,
+    f5_bigip,
 ]

@@ -26,6 +26,8 @@ matched_vpns = ['vpn.{}.edu'.format(d) for d in (
     'smcvt',
     'louisville',
     'usmma',
+    'tcu',
+    'brown',
     )] + ['vpn.{}.com'.format(d) for d in (
     'yonyou',
     )] + [
