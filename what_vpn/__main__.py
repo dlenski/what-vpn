@@ -28,6 +28,8 @@ def main():
     p.add_argument('server', nargs='+', help='suspected SSL-VPN server')
     p.add_argument('-L','--logging', action='store_true', help='Detailed logging for requests and httplib')
     p.add_argument('-V','--version', action='version', version='%(prog)s ' + __version__)
+    p.add_argument('-S','--specific', metavar='SNIFFER', action='append', choices=[s.__name__ for s in sniffers],
+                   help='Specific sniffer to try, may be specified multiple times (default is to try all; options are %s)' % ', '.join(s.__name__ for s in sniffers))
     args = p.parse_args()
 
     if args.logging:
@@ -37,6 +39,9 @@ def main():
     if args.csv:
         wr = csv.writer(stdout)
         wr.writerow(('Server','Errors','Sniffer','Confidence','Name','Version','Components'))
+
+    if args.specific:
+        print('Restricting list of sniffers to: {}'.format(', '.join(args.specific)))
 
     s = SnifferSession()
     s.timeout = args.timeout
@@ -67,6 +72,8 @@ def main():
         hits = []
         ssle = timeout = 0
         for sniffer in sniffers:
+            if args.specific and sniffer.__name__ not in args.specific:
+                continue
             desc = sniffer.__doc__ or sniffer.__name__
             if args.verbose:
                 print("  Is it {}? ".format(desc), end='')
