@@ -18,6 +18,7 @@ Currently it can recognize…
 * Fortinet
 * Array Networks
 * F5 BigIP
+* SonicWall NX
 
 ## Install
 
@@ -82,7 +83,7 @@ VPN protocol:
   1  Check Point
   1  Citrix (manually inspected, don't know how to reliably autodetect)
   1  OpenVPN
-  5  Dell or SonicWall (manually inspected, don't know how to reliably autodetect)
+  5  Dell or SonicWall (manually inspected, didn't know how to reliably autodetect at the time
   7  Fortinet
   7  Barracuda
   8  F5 (manually inspected, didn't know how to reliably autodetect at this time)
@@ -105,7 +106,7 @@ _(Excerpted from
 ## TODO
 
 * Identify non-SSL/TLS-based VPNs? (e.g. IPSEC, à la [ike-scan](//github.com/royhills/ike-scan))
-* Identify more SSL VPNs: Citrix, Dell/SonicWall… any others?
+* Identify more SSL VPNs: Citrix, Dell… any others?
 * Identify specific versions or flavors of VPN servers?
 * Better confidence levels?
 

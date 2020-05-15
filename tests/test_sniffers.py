@@ -32,6 +32,8 @@ matched_vpns = ['vpn.{}.edu'.format(d) for d in (
     'yonyou',
     )] + [
     'cpvpn.its.hawaii.edu',
+    'remote.princeton.edu',
+    'uod.vpn.dundee.ac.uk',
     ]
 unmatched_vpns = ['vpn.{}.edu'.format(d) for d in (
     'acu',

@@ -204,6 +204,16 @@ def f5_bigip(sess, server):
 
     return confidence and Hit(confidence=confidence)
 
+def sonicwall_nx(sess, server):
+    '''SonicWall NX'''
+
+    sess.cookies.set(domain=server, name='EXTRAWEB_REFERER', value='/preauthMI/microinterrogator.js')
+    with closing(sess.get('https://{}/sslvpnclient?launchplatform=mac&neProto=3&supportipv6=yes'.format(server), stream=True,
+                          headers={ "X-SSLVPN-PROTOCOL":"2.0", "X-SSLVPN-SERVICE": "NETEXTENDER", "X-NE-PROTOCOL": "2.0" })) as r:
+        if 'EXTRAWEB_STATE' in sess.cookies and 400 <= r.status_code < 500:
+            server = r.headers.get('server')
+            return Hit(confidence=0.8, version=server)
+
 sniffers = [
     anyconnect,
     juniper_pulse,
@@ -215,4 +225,5 @@ sniffers = [
     fortinet,
     array_networks,
     f5_bigip,
+    sonicwall_nx,
 ]
