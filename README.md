@@ -45,7 +45,6 @@ vpn.tnstate.edu: PAN GlobalProtect (portal+gateway)
 vpn.smith.edu: Juniper Network Connect
 vpn.caltech.edu: AnyConnect/OpenConnect (Cisco, ASA (9.1(6)6))
 vpn.yale.edu: AnyConnect/OpenConnect (Cisco, ASA (8.4(5)))
-vpn.drew.edu: OpenVPN (OpenVPN-AS)
 vpn.uca.edu: Barracuda (2017)
 vpn.simmons.edu: Check Point (2015, 20%)
 vpn.nl.edu: Check Point
@@ -107,6 +106,7 @@ _(Excerpted from
 
 * Identify non-SSL/TLS-based VPNs? (e.g. IPSEC, à la [ike-scan](//github.com/royhills/ike-scan))
 * Identify more SSL VPNs: Citrix, Dell… any others?
+  * Fix apparent false-negatives for some SonicWall servers
 * Identify specific versions or flavors of VPN servers?
 * Better confidence levels?
 

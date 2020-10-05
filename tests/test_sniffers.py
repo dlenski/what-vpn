@@ -14,7 +14,6 @@ session = SnifferSession()
 session.timeout = 10
 
 matched_vpns = ['vpn.{}.edu'.format(d) for d in (
-    'drew',
     'syr',
     'northeastern',
     'yale',
@@ -28,21 +27,22 @@ matched_vpns = ['vpn.{}.edu'.format(d) for d in (
     'usmma',
     'tcu',
     'brown',
+    'acu',
+    'whitworth',
     )] + ['vpn.{}.com'.format(d) for d in (
     'yonyou',
     )] + [
+    'new.vpn.msu.edu',
     'cpvpn.its.hawaii.edu',
     'remote.princeton.edu',
     'uod.vpn.dundee.ac.uk',
     ]
 unmatched_vpns = ['vpn.{}.edu'.format(d) for d in (
-    'acu',
     'aurora',
-    'brown',
     'wisc',
-    'whitworth',
     'valpo',
     'uu',
+    'drew', # FIXME: false-negative SonicWall
     )]
 
 def _count_hits(server):
