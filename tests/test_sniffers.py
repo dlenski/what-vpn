@@ -60,9 +60,9 @@ def _count_hits(server):
 def test_matched_vpns():
     unexpected = [(s, h) for s, h in ((s, _count_hits(s)) for s in matched_vpns) if h != 1]
     if unexpected:
-        raise AssertionError("\n".join("got {} hits for {}, instead of expected 1".format(hits, server) for hits, server in unexpected))
+        raise AssertionError("\n".join("got {} hits for {}, instead of expected 1".format(hits, server) for server, hits in unexpected))
 
 def test_unmatched_vpns():
     unexpected = [(s, h) for s, h in ((s, _count_hits(s)) for s in unmatched_vpns) if h != 0]
     if unexpected:
-        raise AssertionError("\n".join("got {} hits for {}, instead of expected 0".format(hits, server) for hits, server in unexpected))
+        raise AssertionError("\n".join("got {} hits for {}, instead of expected 0".format(hits, server) for server, hits in unexpected))
