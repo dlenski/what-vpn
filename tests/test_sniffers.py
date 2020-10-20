@@ -10,9 +10,6 @@ from random import shuffle
 from what_vpn.requests import SnifferSession
 from what_vpn.sniffers import Hit, sniffers
 
-session = SnifferSession()
-session.timeout = 10
-
 matched_vpns = ['vpn.{}.edu'.format(d) for d in (
     'syr',
     'northeastern',
@@ -37,6 +34,7 @@ matched_vpns = ['vpn.{}.edu'.format(d) for d in (
     'remote.princeton.edu',
     'uod.vpn.dundee.ac.uk',
     ]
+
 unmatched_vpns = ['vpn.{}.edu'.format(d) for d in (
     'aurora',
     'wisc',
@@ -45,24 +43,28 @@ unmatched_vpns = ['vpn.{}.edu'.format(d) for d in (
     'drew', # FIXME: false-negative SonicWall
     )]
 
-def _count_hits(server):
-    hits = 0
-    shuffle(sniffers)
-    for sniffer in sniffers:
-        try:
-            logging.debug('sniffing {} for {}'.format(server, sniffer.__name__))
-            session.cookies.clear()
-            hits += bool(sniffer(session, server))
-        except (rex.Timeout, rex.SSLError, rex.ConnectionError) as e:
-            pass
-    return hits
+class test_known_servers:
+    def setUp(self):
+        self.session = SnifferSession()
+        self.session.timeout = 10
 
-def test_matched_vpns():
-    unexpected = [(s, h) for s, h in ((s, _count_hits(s)) for s in matched_vpns) if h != 1]
-    if unexpected:
-        raise AssertionError("\n".join("got {} hits for {}, instead of expected 1".format(hits, server) for server, hits in unexpected))
+    def check_hits(self, expected_hits, server):
+        hits = 0
+        shuffle(sniffers)
+        for sniffer in sniffers:
+            try:
+                logging.debug('sniffing {} for {}'.format(server, sniffer.__name__))
+                self.session.cookies.clear()
+                hits += bool(sniffer(self.session, server))
+            except (rex.Timeout, rex.SSLError, rex.ConnectionError) as e:
+                pass
+        if hits != expected_hits:
+            raise AssertionError("got {} hits for {}, instead of expected {}".format(hits, server, expected_hits))
 
-def test_unmatched_vpns():
-    unexpected = [(s, h) for s, h in ((s, _count_hits(s)) for s in unmatched_vpns) if h != 0]
-    if unexpected:
-        raise AssertionError("\n".join("got {} hits for {}, instead of expected 0".format(hits, server) for server, hits in unexpected))
+    def test_matched_vpns(self):
+        for s in matched_vpns:
+            yield self.check_hits, 1, s
+
+    def test_unmatched_vpns(self):
+        for s in unmatched_vpns:
+            yield self.check_hits, 0, s
