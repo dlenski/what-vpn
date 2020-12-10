@@ -52,29 +52,37 @@ class test_known_servers:
         self.session = SnifferSession()
         self.session.timeout = 10
 
-    def check_hits(self, expected_hits, server, sniffers=all_sniffers):
-        hits = 0
+    def check_hits(self, server, expected):
+        if expected is not None:
+            expected_hits = 1
+            expected = getattr(sn, expected)
+            sniffers = list(set(all_sniffers) - { expected })
+            shuffle(sniffers)
+            sniffers = [expected] + sniffers[:2]
+        else:
+            expected_hits = 0
+            sniffers = all_sniffers[:]
+            shuffle(sniffers)
+
+        hits = errors = 0
         for sniffer in sniffers:
-            if isinstance(sniffer, str):
-                sniffer = getattr(sn, sniffer)
             try:
                 logging.debug('sniffing {} for {}'.format(server, sniffer.__name__))
                 self.session.cookies.clear()
                 hits += bool(sniffer(self.session, server))
             except (rex.Timeout, rex.SSLError, rex.ConnectionError) as e:
-                pass
-        if hits != expected_hits:
+                errors += 1
+        if hits + errors <= expected_hits > hits:
+            warnings.warn("got {} hits and {} errors for {}, instead of expected {} hits".format(hits, errors, server, expected_hits))
+        elif hits != expected_hits:
             raise AssertionError("got {} hits for {}, instead of expected {}".format(hits, server, expected_hits))
 
     def test_matched_vpns(self):
         for domain, expected in matched_vpns:
-            sniffers = list(set(all_sniffers) - { expected })
-            shuffle(sniffers)
-            sniffers = [expected] + sniffers[:2]
-            yield self.check_hits, 1, domain, tuple(s.__name__ for s in sniffers)
+            yield self.check_hits, domain, expected.__name__
 
     def test_unmatched_vpns(self):
         self.sniffers = all_sniffers[:]
         for domain in unmatched_vpns:
             shuffle(self.sniffers)
-            yield self.check_hits, 0, domain
+            yield self.check_hits, domain, None
