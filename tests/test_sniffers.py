@@ -13,7 +13,6 @@ from what_vpn.sniffers import Hit, sniffers as all_sniffers
 import what_vpn.sniffers as sn
 
 matched_vpns = [('vpn.{}.edu'.format(d), s) for d, s in (
-    ('syr', sn.sstp),                     # bad cert
     ('northeastern', sn.global_protect),  # portal
     ('yale', sn.anyconnect),              # Cisco, bad cert
     ('fau', sn.juniper_pulse),
@@ -28,12 +27,12 @@ matched_vpns = [('vpn.{}.edu'.format(d), s) for d, s in (
     ('acu', sn.sonicwall_nx),
     ('whitworth', sn.f5_bigip),
     )] + [
+    ('vpn.physics.ox.ac.uk', sn.sstp),
     ('umsovpn.umassp.edu', sn.check_point),
     ('gmhssl.gmha.org', sn.barracuda),
     ('sslvpn.co.adams.il.us', sn.barracuda),
     ('univpn.unibe.ch', sn.fortinet),
     ('vpn.tongji.cn', sn.array_networks),
-    ('rnamfso.ra.ericsson.net', sn.array_networks),
     ('new.vpn.msu.edu', sn.f5_bigip),
     ('cpvpn.its.hawaii.edu', sn.check_point),
     ('remote.princeton.edu', sn.sonicwall_nx),
