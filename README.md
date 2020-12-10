@@ -1,5 +1,5 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Build Status](https://api.travis-ci.org/dlenski/what-vpn.png)](https://travis-ci.org/dlenski/what-vpn)
+[![Build Status](https://github.com/dlenski/what-vpn/workflows/test_and_release/badge.svg)](https://github.com/dlenski/what-vpn/actions?query=workflow%3Atest_and_release)
 [![PyPI](https://img.shields.io/pypi/v/what-vpn.svg)](https://pypi.python.org/pypi/what-vpn)
 
 # what-vpn
