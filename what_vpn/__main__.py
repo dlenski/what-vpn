@@ -30,6 +30,7 @@ def main():
     p.add_argument('-V','--version', action='version', version='%(prog)s ' + __version__)
     p.add_argument('-S','--specific', metavar='SNIFFER', action='append', choices=[s.__name__ for s in sniffers],
                    help='Specific sniffer to try, may be specified multiple times (default is to try all; options are %s)' % ', '.join(s.__name__ for s in sniffers))
+    p.add_argument('-P','--proxy', help='HTTPS proxy (in any format accepted by python-requests, e.g. socks5://localhost:8080)')
     args = p.parse_args()
 
     if args.logging:
@@ -44,6 +45,7 @@ def main():
         print('Restricting list of sniffers to: {}'.format(', '.join(args.specific)))
 
     s = SnifferSession()
+    s.proxies['https'] = args.proxy
     s.timeout = args.timeout
 
     for server in args.server:
