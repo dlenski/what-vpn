@@ -5,7 +5,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 from requests import exceptions as rex
 from .sniffers import sniffers, Hit
-from .requests import SnifferSession
+from .requests import SnifferSession, SSLVersionAdapter
 from .version import __version__
 import socket
 import logging
@@ -26,8 +26,15 @@ def main():
     x.add_argument('-v','--verbose', default=0, action='count')
     x.add_argument('-c','--csv', action='store_true', help='Output report in CSV format')
     p.add_argument('server', nargs='+', help='suspected SSL-VPN server')
-    p.add_argument('-L','--logging', action='store_true', help='Detailed logging for requests and httplib')
+    p.add_argument('-L','--logging', default=0, action='count', help='Detailed logging for requests and httplib')
     p.add_argument('-V','--version', action='version', version='%(prog)s ' + __version__)
+    x = p.add_mutually_exclusive_group()
+    x.add_argument('--ssl3', action='store_const', dest='ssl_version', const=SSLVersionAdapter.SSLv23,
+                   help='Try connecting with SSLv3, rather than modern TLS')
+    x.add_argument('--tlsv1', action='store_const', dest='ssl_version', const=SSLVersionAdapter.TLSv1,
+                   help='Try connecting with TLS 1.0, rather than modern TLS')
+    x.add_argument('--tlsv11', action='store_const', dest='ssl_version', const=SSLVersionAdapter.TLSv1_1,
+                   help='Try connecting with TLS 1.1, rather than modern TLS')
     p.add_argument('-S','--specific', metavar='SNIFFER', action='append', choices=[s.__name__ for s in sniffers],
                    help='Specific sniffer to try, may be specified multiple times (default is to try all; options are %s)' % ', '.join(s.__name__ for s in sniffers))
     p.add_argument('-P','--proxy', help='HTTPS proxy (in any format accepted by python-requests, e.g. socks5://localhost:8080)')
@@ -44,7 +51,7 @@ def main():
     if args.specific:
         print('Restricting list of sniffers to: {}'.format(', '.join(args.specific)))
 
-    s = SnifferSession(timeout=args.timeout)
+    s = SnifferSession(timeout=args.timeout, ssl_version=args.ssl_version)
     s.proxies['https'] = args.proxy
 
     for server in args.server:
