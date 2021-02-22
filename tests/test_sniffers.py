@@ -45,6 +45,7 @@ unmatched_vpns = ['vpn.{}.edu'.format(d) for d in (
     'valpo',
     'uu',
     'drew', # FIXME: false-negative SonicWall
+    'softlayer', # FIXME: false-negative Array Networks
     )]
 
 class test_known_servers:

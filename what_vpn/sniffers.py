@@ -129,6 +129,9 @@ def juniper_pulse(sess, server):
     with closing(sess.get('https://{}/'.format(server), headers={'Content-Type':'EAP', 'Upgrade':'IF-T/TLS 1.0', 'Content-Length': '0'}, stream=True)) as r:
         if r.status_code == 101:
             return Hit(name='Pulse Secure', version=r.headers.get('NCP-Version'))
+        # TODO: it's possible to detect a client certificate requirement on a Pulse server
+        # (see https://gitlab.com/openconnect/openconnect/commit/99bd5688fd7b9983b0bcea4a50b56e757f495e22)
+        # but requires speaking the nasty binary Pulse protocol for a few packets
 
     confidence = None
     r = sess.get('https://{}/dana-na'.format(server), headers={'user-agent':'ncsrv', 'NCP-Version': '3'})
