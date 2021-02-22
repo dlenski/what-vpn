@@ -9,11 +9,12 @@ class Hit(object):
     def __bool__(self):
         return self.confidence > 0.0
 
+    def __str__(self):
+        return self.name + (' ({})'.format(self.details) if self.details else '')
+
     @property
     def details(self):
         strings = []
-        if self.name:
-            strings.append(self.name)
         if self.version:
             strings.append(self.version)
         if self.components:
@@ -22,8 +23,8 @@ class Hit(object):
             strings.append('%d%%' % (self.confidence*100))
         return ', '.join(strings)
 
+    name = attr.ib()
     confidence = attr.ib(default=1.0, validator=attr.validators.instance_of(float))
-    name = attr.ib(default=None)
     version = attr.ib(default=None)
     components = attr.ib(default=None)
 
@@ -65,7 +66,7 @@ def global_protect(sess, server):
                 version = m.group(1).decode()
 
     if hit:
-        return Hit(components=components, version=_meaningless(version, '1'))
+        return Hit(name='PAN GlobalProtect', components=components, version=_meaningless(version, '1'))
 
 def check_point(sess, server):
     '''Check Point'''
@@ -82,7 +83,7 @@ def check_point(sess, server):
         version = m.group(2).decode()
         confidence = confidence or 0.2
 
-    return confidence and Hit(version=version, confidence=confidence)
+    return confidence and Hit(name='Check Point', version=version, confidence=confidence)
 
 def sstp(sess, server):
     '''SSTP'''
@@ -92,7 +93,7 @@ def sstp(sess, server):
     with closing(sess.request('SSTP_DUPLEX_POST', 'https://{}/sra_%7BBA195980-CD49-458b-9E23-C84EE0ADCD75%7D/'.format(server), stream=True)) as r:
         if r.status_code==200 and r.headers.get('content-length')=='18446744073709551615':
             version = _meaningless( r.headers.get('server'), "Microsoft-HTTPAPI/2.0" )
-            return Hit(version=version)
+            return Hit(name='SSTP', version=version)
 
 def anyconnect(sess, server):
     '''AnyConnect/OpenConnect'''
@@ -115,7 +116,7 @@ def anyconnect(sess, server):
     with closing(sess.request('CONNECT', 'https://{}/CSCOSSLC/tunnel'.format(server), headers={'Cookie': 'webvpn='}, stream=True)) as r:
         # Cisco returns X-Reason in response to bad CONNECT-tunnel request (GET works too)...
         if 'X-Reason' in r.headers:
-            return Hit(name="Cisco", version=r.headers.get('server'), components=components)
+            return Hit(name="Cisco AnyConnect", version=r.headers.get('server'), components=components)
         elif r.reason=='Cookie is not acceptable':
             return Hit(name="ocserv", version='0.11.7+', components=components)
         # ... whereas ocserv 7e06e1ac..3feec670 inadvertently sends X-Reason header in the *body*
@@ -146,7 +147,7 @@ def openvpn(sess, server):
     '''OpenVPN'''
     r = sess.get('https://{}/'.format(server))
     if any(c.name.startswith('openvpn_sess_') for c in sess.cookies):
-        return Hit(version=r.headers.get('server'))
+        return Hit(name='OpenVPN', version=r.headers.get('server'))
 
 def barracuda(sess, server):
     '''Barracuda'''
@@ -164,7 +165,7 @@ def barracuda(sess, server):
     elif version:
         confidence = 0.2
 
-    return confidence and Hit(version=version, confidence=confidence)
+    return confidence and Hit(name='Barracuda', version=version, confidence=confidence)
 
 def fortinet(sess, server):
     '''Fortinet'''
@@ -174,7 +175,7 @@ def fortinet(sess, server):
     if r.headers.get('set-cookie','').startswith('SVPNCOOKIE'):
         server = r.headers.get('server')
         confidence = 1.0 if server=='xxxxxxxx-xxxxx' else 0.9
-        return Hit(confidence=confidence, version=_meaningless(server,'xxxxxxxx-xxxxx'))
+        return Hit(name='Fortinet', confidence=confidence, version=_meaningless(server,'xxxxxxxx-xxxxx'))
 
 def array_networks(sess, server):
     '''Array Networks'''
@@ -189,7 +190,7 @@ def array_networks(sess, server):
         if b'_AN_global_var_init' in r.content:
             confidence += 0.2
 
-    return confidence and Hit(confidence=confidence)
+    return confidence and Hit(name='Array Networks', confidence=confidence)
 
 def f5_bigip(sess, server):
     '''F5 BigIP'''
@@ -202,7 +203,7 @@ def f5_bigip(sess, server):
     if r.headers.get('server','') == 'BigIP':
         confidence += 0.2
 
-    return confidence and Hit(confidence=confidence)
+    return confidence and Hit(name='F5 BigIP', confidence=confidence)
 
 def sonicwall_nx(sess, server):
     '''SonicWall NX'''
@@ -212,7 +213,7 @@ def sonicwall_nx(sess, server):
                           headers={ "X-SSLVPN-PROTOCOL":"2.0", "X-SSLVPN-SERVICE": "NETEXTENDER", "X-NE-PROTOCOL": "2.0" })) as r:
         if 'EXTRAWEB_STATE' in sess.cookies and 400 <= r.status_code < 500:
             server = r.headers.get('server')
-            return Hit(confidence=0.8, version=server)
+            return Hit(name='SonixWall NX', confidence=0.8, version=server)
 
 sniffers = [
     anyconnect,

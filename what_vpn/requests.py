@@ -2,8 +2,8 @@ import requests
 
 class TimeoutSession(requests.Session):
     def __init__(self, *a, **kw):
+        self.timeout = kw.pop('timeout', None)
         super().__init__(*a, **kw)
-        self.timeout = None
     def request(self, *a, **kw):
         kw.setdefault('timeout', self.timeout)
         return super().request(*a, **kw)

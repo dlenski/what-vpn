@@ -44,9 +44,8 @@ def main():
     if args.specific:
         print('Restricting list of sniffers to: {}'.format(', '.join(args.specific)))
 
-    s = SnifferSession()
+    s = SnifferSession(timeout=args.timeout)
     s.proxies['https'] = args.proxy
-    s.timeout = args.timeout
 
     for server in args.server:
         if args.verbose:
@@ -102,11 +101,10 @@ def main():
             if hit:
                 if args.csv:
                     wr.writerow((server, None, sniffer.__name__, hit.confidence, hit.name, hit.version, hit.components and '+'.join(hit.components)))
-                elif hit.details:
-                    desc += ' ({})'.format(hit.details)
-                hits.append(desc)
+                else:
+                    hits.append(str(hit))
             if args.verbose:
-                print((hit.details or 'hit') if hit else ex)
+                print(str(hit) if hit else ex)
 
             if hit and not args.keep_going:
                 break
