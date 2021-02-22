@@ -139,6 +139,23 @@ def juniper_pulse(sess, server):
 
     return confidence and Hit(name='Juniper NC', confidence=confidence, version=r.headers.get('NCP-Version'))
 
+def f5_bigip(sess, server):
+    '''F5 BigIP'''
+
+    with closing(sess.get('https://{}/myvpn?sess=none&hdlc_framing=no&ipv4=1&ipv6=1&Z=none&hostname=none'.format(server), stream=True)) as r:
+        # F5 server sends '504 Gateway Timeout' when it doesn't like the GET-tunnel parameters
+        if r.status_code == 504:
+            return Hit(name='F5 BigIP', confidence=1.0 if r.headers.get('server','') == 'BigIP' else 0.9)
+
+    r = sess.get('https://{}/my.policy'.format(server))
+    confidence = 0.1 * sum(x in r.headers.get('set-cookie','') for x in ('MRHSession', 'LastMRH_Session', 'F5_'))
+    if urlsplit(r.url).path.startswith('/my.logout'):
+        confidence += 0.5
+    if r.headers.get('server','') == 'BigIP':
+        confidence += 0.2
+
+    return confidence and Hit(name='F5 BigIP', confidence=confidence)
+
 #####
 # Sniffers based on behavior of web front-end
 #####
@@ -191,19 +208,6 @@ def array_networks(sess, server):
             confidence += 0.2
 
     return confidence and Hit(name='Array Networks', confidence=confidence)
-
-def f5_bigip(sess, server):
-    '''F5 BigIP'''
-
-    r = sess.get('https://{}/my.policy'.format(server))
-
-    confidence = 0.1 * sum(x in r.headers.get('set-cookie','') for x in ('MRHSession', 'LastMRH_Session', 'F5_'))
-    if urlsplit(r.url).path.startswith('/my.logout'):
-        confidence += 0.5
-    if r.headers.get('server','') == 'BigIP':
-        confidence += 0.2
-
-    return confidence and Hit(name='F5 BigIP', confidence=confidence)
 
 def sonicwall_nx(sess, server):
     '''SonicWall NX'''
