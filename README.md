@@ -72,6 +72,8 @@ An interesting question for the open source community, including the indispensab
 
 > What are the most commonly-used SSL VPN protocols in the real world?
 
+### 2019 results
+
 In April 2019, I took a list of major universities and companies in the USA, and
 generated some guesses for the hostnames of their VPN endpoints
 (e.g. `{vpn,ssl-vpn,sslvpn}.*.{edu,com}`). I then used `what-vpn` to probe them all
@@ -101,6 +103,37 @@ and of course OpenVPN is well-supported by open-source clients as well.
 
 _(Excerpted from
 [this post on the OpenConnect mailing list](https://lists.infradead.org/pipermail/openconnect-devel/2019-April/005335.html))_
+
+### 2021 results
+
+I repeated this analysis in February 2021 (after having implemented F5, SonicWall NX, and Array Networks sniffers, and
+having improved several others). This time, I expanded the pool of names to include
+`{vpn,ssl-vpn,sslvpn,remote,vpn2,new.vpn,access}.*.{edu,com}`. Here are the 2021 results for servers that matched to
+an identifiable SSL VPN protocol:
+
+```
+  1  Array Networks
+  4  Barracuda
+  4  Check Point
+  6  SonicWall NX
+  8  OpenVPN
+ 14  SSTP
+ 21  F5 BigIP
+ 29  Fortinet
+ 83  Pulse Secure (most also support the older Juniper protocol)
+103  PAN GlobalProtect (includes 7 servers that behave in a slightly odd way)
+298  Cisco AnyConnect (no ocserv found this time)
+```
+
+We've recently added support in OpenConnect for [Fortinet and F5
+BigIP](https://gitlab.com/openconnect/openconnect/-/merge_requests/169)
+(with support for SonicWall NX coming soon). Combined with AnyConnect, GlobalProtect,
+and Pulse/Juniper, this means that OpenConnect now supports 5 of the most highly-used
+SSL VPN protocols.
+
+Assuming again that these results are roughly representative of “SSL VPN” deployments
+_in general_ (at least in the USA). That means that OpenConnect now supports almost
+93% of SSL VPNs in real-world use.
 
 ## TODO
 
