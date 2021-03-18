@@ -116,7 +116,17 @@ def anyconnect(sess, server):
     with closing(sess.request('CONNECT', 'https://{}/CSCOSSLC/tunnel'.format(server), headers={'Cookie': 'webvpn='}, stream=True)) as r:
         # Cisco returns X-Reason in response to bad CONNECT-tunnel request (GET works too)...
         if 'X-Reason' in r.headers:
-            return Hit(name="Cisco AnyConnect", version=r.headers.get('server'), components=components)
+            # At some point prior to February 24, 2020, Cisco introduced a new version of their servers which
+            # *reject* any connections containing the X-AnyConnect-Platform header, and thus AnyConnect <v4.8 as well as
+            # OpenConnect <=8.10. See https://gitlab.com/openconnect/openconnect/-/issues/101#note_531727013
+            r2 = sess.get('https://{}/'.format(server), headers={
+                'X-Aggregate-Auth':'1', 'X-Transcend-Version':'1',
+                'X-AnyConnect-Platform': 'win', 'X-Support-HTTP-Auth': 'true'})
+            if 'anyconnect_unsupported_version.html' in r2.url or 'Please upgrade your AnyConnect Client' in r2.text:
+                version = 'requires_AnyConnect_v4.8_or_newer'
+            else:
+                version = r.headers.get('server')
+            return Hit(name="Cisco AnyConnect", version=version, components=components)
         elif r.reason=='Cookie is not acceptable':
             return Hit(name="ocserv", version='0.11.7+', components=components)
         # ... whereas ocserv 7e06e1ac..3feec670 inadvertently sends X-Reason header in the *body*
