@@ -98,31 +98,40 @@ def sstp(sess, server):
 def anyconnect(sess, server):
     '''AnyConnect/OpenConnect'''
 
+    platform = 'win'
+    config_payload = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<config-auth client="vpn" type="init">'
+        '<version who="vpn"/><device-id>{}</device-id>'
+        '<group-access>https://{}</group-access></config-auth>'.format(platform, server))
+
     components = []
+    xml_post_ok = None
 
     # Use XML-post auth to check for client cert requirement
+    # (This may actually vary by auth-group, but we don't try to enumerate the auth-groups)
     try:
-        r = sess.post('https://{}/'.format(server),
-                      headers={'X-Aggregate-Auth':'1', 'X-Transcend-Version':'1'}, data=
-                      '<?xml version="1.0" encoding="UTF-8"?>\n'
-                      '<config-auth client="vpn" type="init">'
-                      '<version who="vpn"/><device-id/>'
-                      '<group-access>{}</group-access></config-auth>'.format(server))
+        r = sess.post('https://{}/'.format(server), data=config_payload, headers={
+            'X-Aggregate-Auth':'1', 'X-Transcend-Version':'1'})
         if b'<client-cert-request' in r.content:
             components.append('wants ccert')
+        xml_post_ok = r.ok
     except rex.ChunkedEncodingError:
         pass # some servers barf on this
 
     with closing(sess.request('CONNECT', 'https://{}/CSCOSSLC/tunnel'.format(server), headers={'Cookie': 'webvpn='}, stream=True)) as r:
         # Cisco returns X-Reason in response to bad CONNECT-tunnel request (GET works too)...
         if 'X-Reason' in r.headers:
-            # At some point prior to February 24, 2020, Cisco introduced a new version of their servers which
-            # *reject* any connections containing the X-AnyConnect-Platform header, and thus AnyConnect <v4.8 as well as
-            # OpenConnect <=8.10. See https://gitlab.com/openconnect/openconnect/-/issues/101#note_531727013
-            r2 = sess.get('https://{}/'.format(server), headers={
-                'X-Aggregate-Auth':'1', 'X-Transcend-Version':'1',
-                'X-AnyConnect-Platform': 'win', 'X-Support-HTTP-Auth': 'true'})
-            if 'anyconnect_unsupported_version.html' in r2.url or 'Please upgrade your AnyConnect Client' in r2.text:
+            # At some point prior to February 24, 2020, Cisco introduced a new version of their servers which *reject* any
+            # connections containing the X-AnyConnect-Platform header, and thus AnyConnect <v4.8 as well as OpenConnect <=8.10.
+            r2 = sess.post('https://{}/'.format(server), data=config_payload, headers={
+                'X-Aggregate-Auth':'1', 'X-Transcend-Version':'1', 'X-AnyConnect-Platform': platform})
+            if xml_post_ok and not r2.ok:
+                # We know that:
+                # 1) the initial XML post *without* the X-AnyConnect-Platform header is okay
+                # 2) the initial XML post *with* the X-AnyConnect-Platform header is NOT okay
+                # That appears to happen *only* with the newer server version that requires AnyConnect v4.8+.
+                # See https://gitlab.com/openconnect/openconnect/-/issues/101#note_531727013
                 version = 'requires_AnyConnect_v4.8_or_newer'
             else:
                 version = r.headers.get('server')
