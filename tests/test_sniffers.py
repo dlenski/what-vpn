@@ -20,18 +20,18 @@ matched_vpns = [('vpn.{}.edu'.format(d), s) for d, s in (
     ('simmons', sn.check_point),
     ('nl', sn.anyconnect),
     ('ycp', sn.fortinet),
-    ('smcvt', sn.fortinet),              # bad cert
+    ('uakron', sn.fortinet),             # bad cert
     ('louisville', sn.global_protect),   # portal
     ('usmma', sn.global_protect),        # portal+gateway, ccert
     ('tcu', sn.f5_bigip),
     ('brown', sn.f5_bigip),
     ('acu', sn.sonicwall_nx),
     ('whitworth', sn.f5_bigip),
+    ('pnw', sn.check_point),
     )] + [('vpn.{}.com'.format(d), s) for d, s in (
     ('yonyou', sn.array_networks),
     )] + [
     ('new.vpn.msu.edu', sn.f5_bigip),
-    ('cpvpn.its.hawaii.edu', sn.check_point),
     ('remote.princeton.edu', sn.sonicwall_nx),
     ('uod.vpn.dundee.ac.uk', sn.sonicwall_nx),
     ('vpn.sgh.waw.pl', sn.global_protect),    # portal
