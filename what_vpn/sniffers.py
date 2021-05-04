@@ -178,6 +178,25 @@ def f5_bigip(sess, server):
 
     return confidence and Hit(name='F5 BigIP', confidence=confidence)
 
+def array_networks(sess, server):
+    '''Array Networks'''
+
+    with closing(sess.get('https://{}/vpntunnel'.format(server), allow_redirects=False, stream=True)) as r:
+        # Array server redirects to /prx/\d\d\d/.../cookietest when it doesn't like the GET-tunnel parameters
+        if r.status_code == 302:
+            return Hit(name='Array Networks', confidence=1.0 if re.match(r'/prx/\d\d\d/\S+/cookietest', r.headers.get('location','')) else 0.4)
+
+    r = sess.get('https://{}/'.format(server))
+    confidence = 0
+    if re.match(r'/prx/\d\d\d/', urlsplit(r.url).path):
+        confidence += 0.1
+        if b'array networks' in r.content.lower() or b'arraynetworks' in r.content.lower():
+            confidence += 0.1
+        if b'_AN_global_var_init' in r.content:
+            confidence += 0.2
+
+    return confidence and Hit(name='Array Networks', confidence=confidence)
+
 #####
 # Sniffers based on behavior of web front-end
 #####
@@ -215,21 +234,6 @@ def fortinet(sess, server):
         server = r.headers.get('server')
         confidence = 1.0 if server=='xxxxxxxx-xxxxx' else 0.9
         return Hit(name='Fortinet', confidence=confidence, version=_meaningless(server,'xxxxxxxx-xxxxx'))
-
-def array_networks(sess, server):
-    '''Array Networks'''
-
-    r = sess.get('https://{}/'.format(server))
-
-    confidence = 0
-    if re.match(r'/prx/\d\d\d/', urlsplit(r.url).path):
-        confidence += 0.1
-        if b'array networks' in r.content.lower() or b'arraynetworks' in r.content.lower():
-            confidence += 0.1
-        if b'_AN_global_var_init' in r.content:
-            confidence += 0.2
-
-    return confidence and Hit(name='Array Networks', confidence=confidence)
 
 def sonicwall_nx(sess, server):
     '''SonicWall NX'''
