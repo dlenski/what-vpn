@@ -208,8 +208,8 @@ def array_networks(sess, server):
 
     with closing(sess.get('https://{}/vpntunnel'.format(server), allow_redirects=False, stream=True)) as r:
         # Array server redirects to /prx/\d\d\d/.../cookietest when it doesn't like the GET-tunnel parameters
-        if r.status_code == 302:
-            return Hit(name='Array Networks', confidence=1.0 if re.match(r'/prx/\d\d\d/\S+/cookietest', r.headers.get('location','')) else 0.4)
+        if r.status_code == 302 and re.match(r'/prx/\d\d\d/\S+/cookietest', r.headers.get('location','')):
+            return Hit(name='Array Networks', confidence=1.0)
 
     r = sess.get('https://{}/'.format(server))
     confidence = 0
