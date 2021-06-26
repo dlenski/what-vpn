@@ -3,6 +3,8 @@ from urllib.parse import urlsplit
 from requests import exceptions as rex
 import re
 import attr
+import ssl
+import socket
 
 @attr.s
 class Hit(object):
@@ -70,20 +72,43 @@ def global_protect(sess, server):
 
 def check_point(sess, server):
     '''Check Point'''
-    confidence = version = None
+    confidence = protocols = None
 
-    # Try an empty client request in Check Point's parenthesis-heavy format
-    r = sess.post('https://{}/clients/abc'.format(server), headers={'user-agent':'TRAC/986000125'}, data=b'(CCCclientRequest)')
+    # ClientHello HTTP request in Check Point's parenthesis-heavy format
+    r = sess.post('https://{}/clients'.format(server),
+                  data=b'(CCCclientRequest\n:RequestHeader (\n:id (1)\n:session_id ()\n:type (ClientHello)\n:protocol_version (100)\n)\n:RequestData (\n:client_info (\n:client_type (TRAC)\n:client_version (0)\n)\n)\n)\n')
     if r.content.startswith(b'(CCCserverResponse'):
         confidence = 1.0
+        protocols = re.search(rb':supported_data_tunnel_protocols\s*\(((?:\s*:\s*\([^\)]+\))*\s*\))', r.content, re.M)
+        if protocols:
+            protocols = [b.decode() for b in re.findall(rb'\(([^\)]+)\)', protocols.group(1))]
 
-    r = sess.get('https://{}/'.format(server), headers={'user-agent':'TRAC/986000125'})
-    m = re.search(rb'(\d+-)?(\d+).+Check Point Software Technologies', r.content)
-    if m:
-        version = m.group(2).decode()
-        confidence = confidence or 0.2
+    # ClientHello request over bare TLS in Check Point's format
+    if not confidence:
+        sock = socket.socket(socket.AF_INET)
+        sock.settimeout(sess.timeout)
+        context = ssl._create_unverified_context()
+        conn = context.wrap_socket(sock)
 
-    return confidence and Hit(name='Check Point', version=version, confidence=confidence)
+        rest, *last = server.rsplit(':', 1)
+        if not last:
+            host, port = rest, 443
+        elif ']' in last: # we mis-split something like '[2601::1234]':
+            host, port = server, 443
+        else:
+            host, port = rest, last[0]
+
+        client_hello = b'(client_hello\n:client_version (1)\n:protocol_version (1)\n:OM (\n:ipaddr (0.0.0.0)\n:keep_address (false)\n)\n:optional (\n:client_type (4)\n)\n:cookie (ff)\n)\n'
+        client_hello = bytes((0, 0, 0, len(client_hello), 0, 0, 0, 1)) + client_hello  # Add length and packet-type prefix
+        with closing(conn):
+            conn.connect((host, port))
+            conn.write(client_hello)
+            resp = conn.recv()
+            if resp[4:19] == b'\0\0\0\x01(disconnect':
+                confidence = 1.0
+                protocols = ('SSL',)
+
+    return confidence and Hit(name='Check Point', confidence=confidence, components=protocols)
 
 def sstp(sess, server):
     '''SSTP'''

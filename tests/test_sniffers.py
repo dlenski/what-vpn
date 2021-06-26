@@ -6,6 +6,7 @@ warnings.simplefilter('ignore', category=ResourceWarning)
 import logging
 from requests import exceptions as rex
 from random import shuffle
+import socket
 
 from what_vpn.requests import SnifferSession
 from what_vpn.sniffers import Hit, sniffers as all_sniffers
@@ -72,7 +73,7 @@ class test_known_servers:
                 logging.debug('sniffing {} for {}'.format(server, sniffer.__name__))
                 self.session.cookies.clear()
                 hits += bool(sniffer(self.session, server))
-            except (rex.Timeout, rex.SSLError, rex.ConnectionError) as e:
+            except (rex.Timeout, rex.SSLError, rex.ConnectionError, socket.error) as e:
                 errors += 1
         if hits + errors <= expected_hits > hits:
             warnings.warn("got {} hits and {} errors for {}, instead of expected {} hits".format(hits, errors, server, expected_hits))

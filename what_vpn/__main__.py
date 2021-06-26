@@ -91,7 +91,7 @@ def main():
             hit = ex = None
             try:
                 hit = sniffer(s, server)
-            except rex.Timeout as e:
+            except (rex.Timeout, socket.timeout) as e:
                 ex = 'timeout'
                 timeout += 1
                 bail += 1
@@ -99,7 +99,7 @@ def main():
                 ex = 'SSL error'
                 ssle += 1
                 bail += 1
-            except rex.ConnectionError as e:
+            except (rex.ConnectionError, socket.error) as e:
                 ex = 'connection error'
             except Exception as e:
                 if args.verbose > 1:
