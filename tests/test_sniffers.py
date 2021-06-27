@@ -29,9 +29,8 @@ matched_vpns = [('vpn.{}.edu'.format(d), s) for d, s in (
     ('acu', sn.sonicwall_nx),
     ('whitworth', sn.f5_bigip),
     ('pnw', sn.check_point),
-    )] + [('vpn.{}.com'.format(d), s) for d, s in (
-    ('yonyou', sn.array_networks),
     )] + [
+    ('vpn.tongji.cn', sn.array_networks),
     ('new.vpn.msu.edu', sn.f5_bigip),
     ('remote.princeton.edu', sn.sonicwall_nx),
     ('uod.vpn.dundee.ac.uk', sn.sonicwall_nx),
