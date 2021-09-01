@@ -256,9 +256,24 @@ def fortinet(sess, server):
     # server sets *empty* SVPNCOOKIE/SVPNNETWORKCOOKIE
     r = sess.get('https://{}/remote/login'.format(server))
     if r.headers.get('set-cookie','').startswith('SVPNCOOKIE'):
-        server = r.headers.get('server')
-        confidence = 1.0 if server=='xxxxxxxx-xxxxx' else 0.9
-        return Hit(name='Fortinet', confidence=confidence, version=_meaningless(server,'xxxxxxxx-xxxxx'))
+        version = r.headers.get('server')
+        if version == 'xxxxxxxx-xxxxx':
+            confidence = 1.0
+            version = None
+        else:
+            confidence = 0.9
+
+        # It seems that FortiGate v6.2 and newer (approximately?) respond to invalid/expired
+        # SVPNCOOKIE with a 403, while older versions respond with a 302 redirect to
+        # /remote/login (https://gitlab.com/openconnect/openconnect/-/issues/298#note_665752756)
+        r = sess.get('https://{}/remote/fortisslvpn_xml'.format(server), allow_redirects=False)
+        if r.status_code == 403:
+            version = ((version + '; ') if version else '') + 'FortiGate >v6.2?'
+        elif r.status_code == 302 and re.search(r'/remote/login', r.headers.get('location','')):
+            # Older FortiGate versions (we think) respond to invalid/expired SVPNCOOKIE thusly
+            confidence = 1.0
+            version = ((version + '; ') if version else '') + 'FortiGate <v6.2?'
+        return Hit(name='Fortinet', confidence=confidence, version=version)
 
 def sonicwall_nx(sess, server):
     '''SonicWall NX'''
