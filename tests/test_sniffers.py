@@ -30,8 +30,11 @@ matched_vpns = [('vpn.{}.edu'.format(d), s) for d, s in (
     ('whitworth', sn.f5_bigip),
     ('pnw', sn.check_point),
     )] + [
+    ('univpn.unibe.ch', sn.fortinet),
     ('vpn.tongji.cn', sn.array_networks),
+    ('rnamfso.ra.ericsson.net', sn.array_networks),
     ('new.vpn.msu.edu', sn.f5_bigip),
+    ('cpvpn.its.hawaii.edu', sn.check_point),
     ('remote.princeton.edu', sn.sonicwall_nx),
     ('uod.vpn.dundee.ac.uk', sn.sonicwall_nx),
     ('vpn.sgh.waw.pl', sn.global_protect),    # portal
