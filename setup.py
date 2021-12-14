@@ -2,9 +2,9 @@
 
 import sys, os
 try:
-  from setuptools import setup
+    from setuptools import setup
 except ImportError:
-  from distutils.core import setup
+    from distutils.core import setup
 
 if not sys.version_info[0] == 3:
     sys.exit("Python 2.x is not supported; Python 3.x is required.")
@@ -20,17 +20,25 @@ with open(version_py, 'r') as fh:
 
 ########################################
 
-setup(name="what-vpn",
-      version=version_pep,
-      description="Identify servers running various SSL VPNs",
-      long_description=open("description.rst").read(),
-      author="Daniel Lenski",
-      author_email="dlenski@gmail.com",
-      license='GPL v3 or later',
-      install_requires=open("requirements.txt").read().splitlines(),
-      url="https://github.com/dlenski/what-vpn",
-      packages = ['what_vpn'],
-      entry_points={ 'console_scripts': [ 'what-vpn=what_vpn.__main__:main' ] },
-      tests_require=['nose>=1.0'],
-      test_suite='nose.collector',
-      )
+setup(
+    name="what-vpn",
+    version=version_pep,
+    description="Identify servers running various SSL VPNs",
+    long_description=open("README.md").read(),
+    long_description_content_type='text/markdown',
+    author="Daniel Lenski",
+    author_email="dlenski@gmail.com",
+    license='GPL v3 or later',
+    install_requires=open("requirements.txt").readlines(),
+    url="https://github.com/dlenski/what-vpn",
+    packages = ['what_vpn'],
+    entry_points={ 'console_scripts': [ 'what-vpn=what_vpn.__main__:main' ] },
+    tests_require=['nose>=1.0'],
+    test_suite='nose.collector',
+    classifiers={
+        'Development Status :: 4 - Beta',
+        'Environment :: Console',
+        'Topic :: System :: Networking',
+        'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
+    },
+)
