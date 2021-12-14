@@ -33,8 +33,7 @@ setup(
     url="https://github.com/dlenski/what-vpn",
     packages = ['what_vpn'],
     entry_points={ 'console_scripts': [ 'what-vpn=what_vpn.__main__:main' ] },
-    tests_require=['nose>=1.0'],
-    test_suite='nose.collector',
+    test_suite='nose2.collector.collector',
     classifiers={
         'Development Status :: 4 - Beta',
         'Environment :: Console',
