@@ -70,18 +70,23 @@ class test_known_servers:
             sniffers = all_sniffers[:]
             shuffle(sniffers)
 
-        hits = errors = 0
+        hits = errors = got_expected_hit = 0
         for sniffer in sniffers:
             try:
                 logging.debug('sniffing {} for {}'.format(server, sniffer.__name__))
                 self.session.cookies.clear()
-                hits += bool(sniffer(self.session, server))
+                hit = sniffer(self.session, server)
+                if hit:
+                    hits += 1
+                    got_expected_hit += (expected.__name__ == sniffer.__name__)
+                    logging.debug('got hit for {}: {}'.format(server, hit))
             except (rex.Timeout, rex.SSLError, rex.ConnectionError, socket.error) as e:
+                logging.warn('sniffing {} for {} resulted in exception {}'.format(server, sniffer.__name__, e))
                 errors += 1
         if hits + errors <= expected_hits > hits:
             warnings.warn("got {} hits and {} errors for {}, instead of expected {} hits".format(hits, errors, server, expected_hits))
-        else:
-            assert hits == expected_hits, "got {} hits for {}, instead of expected {}".format(hits, server, expected_hits)
+        assert hits == expected_hits, "got {} hits for {}, instead of expected {}".format(hits, server, expected_hits)
+        assert expected_hits == 0 or got_expected_hit
 
     def test_matched_vpns(self):
         for domain, expected in matched_vpns:
