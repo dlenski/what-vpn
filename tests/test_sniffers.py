@@ -42,6 +42,8 @@ matched_vpns = [('vpn.{}.edu'.format(d), s) for d, s in (
     ('vpn-gw.sgh.waw.pl', sn.global_protect),  # gateway
     ('jvpn.tn.gov', sn.juniper_pulse),
     ('174.127.47.193', sn.check_point),  # no DNS?
+    ('nomad.sandiego.edu', sn.aruba_via),
+    ('viavpn.luther.edu', sn.aruba_via),
     ]
 
 unmatched_vpns = ['vpn.{}.edu'.format(d) for d in (

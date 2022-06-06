@@ -19,6 +19,7 @@ Currently it can recognize…
 * Array Networks
 * F5 BigIP
 * SonicWall NX
+* Aruba VIA
 
 ## Install
 
@@ -38,7 +39,8 @@ what-vpn: error: the following arguments are required: server
 $ what-vpn vpn.colorado.edu vpn.northeastern.edu \
     vpn.tnstate.edu vpn.smith.edu vpn.caltech.edu \
     vpn.yale.edu vpn.drew.edu vpn.uca.edu vpn.simmons.edu \
-    vpn.nl.edu cpvpn.its.hawaii.edu ssl-vpn.***.com
+    vpn.nl.edu cpvpn.its.hawaii.edu ssl-vpn.***.com \
+    viavpn.luther.edu
 vpn.colorado.edu: AnyConnect/OpenConnect (Cisco)
 vpn.northeastern.edu: PAN GlobalProtect (portal)
 vpn.tnstate.edu: PAN GlobalProtect (portal+gateway)
@@ -51,6 +53,7 @@ vpn.nl.edu: Check Point
 cpvpn.its.hawaii.edu: Check Point
 vpn.***.com: Array Networks (40%)
 ssl-vpn.***.com: no match
+viavpn.luther.edu Aruba VIA (80%)
 
 $ what-vpn -kv vpn.***.com
 

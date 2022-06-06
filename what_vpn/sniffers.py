@@ -285,6 +285,19 @@ def sonicwall_nx(sess, server):
             server = r.headers.get('server')
             return Hit(name='SonixWall NX', confidence=0.8, version=server)
 
+def aruba_via(sess, server):
+    '''Aruba VIA'''
+
+    # server sets *empty* SESSION cookie and returns 401 invalid
+    r = sess.get('https://{}'.format(server))
+    if r.status_code == 401 and r.headers.get('set-cookie','').startswith('SESSION'):
+        confidence = 0.5 if 'Aruba Networks' in r.text else 0.3
+        r = sess.get('https://{}/screens/wms/wms.login'.format(server))
+        if r.status_code == 200 and r.headers.get('set-cookie','').startswith('SESSION'):
+            confidence += 0.3
+
+        return Hit(name='Aruba VIA', confidence=confidence)
+
 sniffers = [
     anyconnect,
     juniper_pulse,
@@ -297,4 +310,5 @@ sniffers = [
     array_networks,
     f5_bigip,
     sonicwall_nx,
+    aruba_via,
 ]
