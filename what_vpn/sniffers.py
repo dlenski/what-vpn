@@ -290,7 +290,7 @@ def fortinet(sess, server):
 
 
 def sonicwall_nx(sess, server):
-    '''SonicWall NX'''
+    '''SonicWall NX (formerly Dell)'''
 
     sess.cookies.set(domain=server, name='EXTRAWEB_REFERER', value='/preauthMI/microinterrogator.js')
     with closing(sess.get('https://{}/sslvpnclient?launchplatform=mac&neProto=3&supportipv6=yes'.format(server), stream=True,
