@@ -4,7 +4,7 @@ import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 from requests import exceptions as rex
-from .sniffers import sniffers, Hit
+from .sniffers import sniffers
 from .requests import SnifferSession, SSLVersionAdapter
 from .version import __version__
 import socket
@@ -13,22 +13,21 @@ import http.client
 from ipaddress import ip_address
 
 import argparse
-import os
-import re
 import csv
-from sys import stderr, stdout
+import sys
+
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument('-k','--keep-going', action='store_true', help='Keep going after first hit')
-    p.add_argument('-K','--keep-going-after-exception', action='store_true', help='Keep going after an SSL or timeout exception')
-    p.add_argument('-t','--timeout', metavar='SEC', type=lambda x: int(x) or None, default=10, help='Timeout in seconds (default %(default)s, 0 for none)')
+    p.add_argument('-k', '--keep-going', action='store_true', help='Keep going after first hit')
+    p.add_argument('-K', '--keep-going-after-exception', action='store_true', help='Keep going after an SSL or timeout exception')
+    p.add_argument('-t', '--timeout', metavar='SEC', type=lambda x: int(x) or None, default=10, help='Timeout in seconds (default %(default)s, 0 for none)')
     x = p.add_mutually_exclusive_group()
-    x.add_argument('-v','--verbose', default=0, action='count')
-    x.add_argument('-c','--csv', action='store_true', help='Output report in CSV format')
+    x.add_argument('-v', '--verbose', default=0, action='count')
+    x.add_argument('-c', '--csv', action='store_true', help='Output report in CSV format')
     p.add_argument('server', nargs='+', help='suspected SSL-VPN server')
-    p.add_argument('-L','--logging', default=0, action='count', help='Detailed logging for requests and httplib')
-    p.add_argument('-V','--version', action='version', version='%(prog)s ' + __version__)
+    p.add_argument('-L', '--logging', default=0, action='count', help='Detailed logging for requests and httplib')
+    p.add_argument('-V', '--version', action='version', version='%(prog)s ' + __version__)
     x = p.add_mutually_exclusive_group()
     x.add_argument('--ssl3', action='store_const', dest='ssl_version', const=SSLVersionAdapter.SSLv23,
                    help='Try connecting with SSLv3, rather than modern TLS')
@@ -36,9 +35,9 @@ def main():
                    help='Try connecting with TLS 1.0, rather than modern TLS')
     x.add_argument('--tlsv11', action='store_const', dest='ssl_version', const=SSLVersionAdapter.TLSv1_1,
                    help='Try connecting with TLS 1.1, rather than modern TLS')
-    p.add_argument('-S','--specific', metavar='SNIFFER', action='append', choices=[s.__name__ for s in sniffers],
+    p.add_argument('-S', '--specific', metavar='SNIFFER', action='append', choices=[s.__name__ for s in sniffers],
                    help='Specific sniffer to try, may be specified multiple times (default is to try all; options are %s)' % ', '.join(s.__name__ for s in sniffers))
-    p.add_argument('-P','--proxy', help='HTTPS proxy (in any format accepted by python-requests, e.g. socks5://localhost:8080)')
+    p.add_argument('-P', '--proxy', help='HTTPS proxy (in any format accepted by python-requests, e.g. socks5://localhost:8080)')
     args = p.parse_args()
 
     if args.logging:
@@ -46,8 +45,8 @@ def main():
         logging.basicConfig(level=logging.DEBUG)
 
     if args.csv:
-        wr = csv.writer(stdout)
-        wr.writerow(('Server','Errors','Sniffer','Confidence','Name','Version','Components'))
+        wr = csv.writer(sys.stdout)
+        wr.writerow(('Server', 'Errors', 'Sniffer', 'Confidence', 'Name', 'Version', 'Components'))
 
     if args.specific:
         print('Restricting list of sniffers to: {}'.format(', '.join(args.specific)))
@@ -91,15 +90,15 @@ def main():
             hit = ex = None
             try:
                 hit = sniffer(s, server)
-            except (rex.Timeout, socket.timeout) as e:
+            except (rex.Timeout, socket.timeout):
                 ex = 'timeout'
                 timeout += 1
                 bail += 1
-            except rex.SSLError as e:
+            except rex.SSLError:
                 ex = 'SSL error'
                 ssle += 1
                 bail += 1
-            except (rex.ConnectionError, socket.error) as e:
+            except (rex.ConnectionError, socket.error):
                 ex = 'connection error'
             except Exception as e:
                 if args.verbose > 1:
@@ -127,11 +126,11 @@ def main():
 
         extra = ' (tried %d/%d sniffers)' % (tried, len(sniffers)) if tried < len(sniffers) else ''
         if ssle:
-            errs = 'SSL errors'+extra
+            errs = 'SSL errors' + extra
         elif timeout:
-            errs = 'timeout'+extra
+            errs = 'timeout' + extra
         elif not hits:
-            errs = 'no match'+extra
+            errs = 'no match' + extra
 
         if args.csv and not hits:
             wr.writerow((server, errs))
@@ -140,5 +139,6 @@ def main():
 
 ########################################
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     main()

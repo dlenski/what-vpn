@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-import sys, os
+import sys
+import os
 try:
     from setuptools import setup
 except ImportError:
@@ -31,8 +32,8 @@ setup(
     license='GPL v3 or later',
     install_requires=open("requirements.txt").readlines(),
     url="https://github.com/dlenski/what-vpn",
-    packages = ['what_vpn'],
-    entry_points={ 'console_scripts': [ 'what-vpn=what_vpn.__main__:main' ] },
+    packages=['what_vpn'],
+    entry_points={'console_scripts': ['what-vpn=what_vpn.__main__:main']},
     test_suite='nose2.collector.collector',
     classifiers={
         'Development Status :: 4 - Beta',

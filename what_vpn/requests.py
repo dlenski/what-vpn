@@ -4,6 +4,7 @@ from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.poolmanager import PoolManager
 import ssl
 
+
 # https://lukasa.co.uk/2013/01/Choosing_SSL_Version_In_Requests/
 class SSLVersionAdapter(HTTPAdapter):
     '''An HTTPS Transport Adapter that uses an arbitrary SSL version.'''
@@ -22,13 +23,16 @@ class SSLVersionAdapter(HTTPAdapter):
                                        block=block,
                                        ssl_version=self.ssl_version)
 
+
 class TimeoutSession(requests.Session):
     def __init__(self, *a, **kw):
         self.timeout = kw.pop('timeout', None)
         super().__init__(*a, **kw)
+
     def request(self, *a, **kw):
         kw.setdefault('timeout', self.timeout)
         return super().request(*a, **kw)
+
 
 class SnifferSession(TimeoutSession):
     def __init__(self, *a, **kw):
