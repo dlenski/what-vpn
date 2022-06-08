@@ -141,7 +141,7 @@ _in general_ (at least in the USA). That means that OpenConnect now supports alm
 ## TODO
 
 * Identify non-SSL/TLS-based VPNs? (e.g. IPSEC, à la [ike-scan](//github.com/royhills/ike-scan))
-* Identify more SSL VPNs: Citrix, Dell… any others?
+* Identify more SSL VPNs: Citrix, any others?
   * Fix apparent false-negatives for some SonicWall servers
 * Identify specific versions or flavors of VPN servers?
 * Better confidence levels?
