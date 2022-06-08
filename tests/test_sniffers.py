@@ -18,7 +18,6 @@ matched_vpns = [('vpn.{}.edu'.format(d), s) for d, s in (
     ('fau', sn.juniper_pulse),
     ('simmons', sn.check_point),
     ('nl', sn.anyconnect),
-    ('ycp', sn.fortinet),
     ('uakron', sn.fortinet),              # bad cert
     ('louisville', sn.global_protect),    # portal
     ('usmma', sn.global_protect),         # portal+gateway, ccert
