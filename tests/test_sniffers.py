@@ -30,7 +30,6 @@ matched_vpns = [('vpn.{}.edu'.format(d), s) for d, s in (
     ('vpn.physics.ox.ac.uk', sn.sstp),
     ('umsovpn.umassp.edu', sn.check_point),
     ('gmhssl.gmha.org', sn.barracuda),
-    ('sslvpn.co.adams.il.us', sn.barracuda),
     ('univpn.unibe.ch', sn.fortinet),
     ('vpn.tongji.cn', sn.array_networks),
     ('new.vpn.msu.edu', sn.f5_bigip),
