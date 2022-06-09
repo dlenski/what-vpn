@@ -29,6 +29,7 @@ matched_vpns = [('vpn.{}.edu'.format(d), s) for d, s in (
     )] + [
     ('securesso.aurora.edu', sn.global_protect),
     ('vpn.physics.ox.ac.uk', sn.sstp),
+    ('uwmadison.vpn.wisc.edu', sn.global_protect),
     ('umsovpn.umassp.edu', sn.check_point),
     ('gmhssl.gmha.org', sn.barracuda),
     ('sslvpn.co.adams.il.us', sn.barracuda),
@@ -47,7 +48,6 @@ matched_vpns = [('vpn.{}.edu'.format(d), s) for d, s in (
     ]
 
 unmatched_vpns = ['vpn.{}.edu'.format(d) for d in (
-    'wisc',
     'valpo',
     'uu',
     'drew',  # FIXME: false-negative SonicWall
