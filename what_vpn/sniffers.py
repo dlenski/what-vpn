@@ -6,6 +6,7 @@ import attr
 import ssl
 import socket
 
+
 @attr.s
 class Hit(object):
     def __bool__(self):
@@ -22,7 +23,7 @@ class Hit(object):
         if self.components:
             strings.append('+'.join(self.components))
         if self.confidence < 1.0:
-            strings.append('%d%%' % (self.confidence*100))
+            strings.append('%d%%' % (self.confidence * 100))
         return ', '.join(strings)
 
     name = attr.ib()
@@ -30,9 +31,11 @@ class Hit(object):
     version = attr.ib(default=None)
     components = attr.ib(default=None)
 
+
 def _meaningless(x, *vals):
     if x not in vals:
         return x
+
 
 #####
 # Sniffers based on protocol details
@@ -47,16 +50,17 @@ def global_protect(sess, server):
     components = []
     version = hit = None
 
-    for component, path in (('portal','global-protect'), ('gateway','ssl-vpn')):
-        r = sess.post('https://{}/{}/prelogin.esp?tmp=tmp&clientVer=4100&clientos=Windows'.format(server, path), headers={'user-agent':'PAN GlobalProtect'})
-        if r.headers.get('content-type','').startswith('application/xml') and b'<prelogin-response>' in r.content:
+    for component, path in (('portal', 'global-protect'), ('gateway', 'ssl-vpn')):
+        r = sess.post('https://{}/{}/prelogin.esp?tmp=tmp&clientVer=4100&clientos=Windows'.format(server, path),
+                      headers={'user-agent': 'PAN GlobalProtect'})
+        if r.headers.get('content-type', '').startswith('application/xml') and b'<prelogin-response>' in r.content:
             hit = True
 
             if b'<status>Success</status>' in r.content:
                 components.append(component)
             elif b'<status>Error</status>' in r.content and b'<msg>Valid client certificate is required</msg>' in r.content:
                 components.append(component)
-                components.append(component+' wants ccert')
+                components.append(component + ' wants ccert')
 
             m = re.search(rb'<saml-auth-method>([^<]+)</saml-auth-method>', r.content)
             if m:
@@ -69,6 +73,7 @@ def global_protect(sess, server):
 
     if hit:
         return Hit(name='PAN GlobalProtect', components=components, version=_meaningless(version, '1'))
+
 
 def check_point(sess, server):
     '''Check Point'''
@@ -93,7 +98,7 @@ def check_point(sess, server):
         rest, *last = server.rsplit(':', 1)
         if not last:
             host, port = rest, 443
-        elif ']' in last: # we mis-split something like '[2601::1234]':
+        elif ']' in last:  # we mis-split something like '[2601::1234]':
             host, port = server, 443
         else:
             host, port = rest, last[0]
@@ -110,15 +115,17 @@ def check_point(sess, server):
 
     return confidence and Hit(name='Check Point', confidence=confidence, components=protocols)
 
+
 def sstp(sess, server):
     '''SSTP'''
     # Yes, this is for real...
     # See section 3.2.4.1 of v17.0 doc at https://msdn.microsoft.com/en-us/library/cc247338.aspx
 
     with closing(sess.request('SSTP_DUPLEX_POST', 'https://{}/sra_%7BBA195980-CD49-458b-9E23-C84EE0ADCD75%7D/'.format(server), stream=True)) as r:
-        if r.status_code==200 and r.headers.get('content-length')=='18446744073709551615':
-            version = _meaningless( r.headers.get('server'), "Microsoft-HTTPAPI/2.0" )
+        if r.status_code == 200 and r.headers.get('content-length') == '18446744073709551615':
+            version = _meaningless(r.headers.get('server'), "Microsoft-HTTPAPI/2.0")
             return Hit(name='SSTP', version=version)
+
 
 def anyconnect(sess, server):
     '''AnyConnect/OpenConnect'''
@@ -137,12 +144,12 @@ def anyconnect(sess, server):
     # (This may actually vary by auth-group, but we don't try to enumerate the auth-groups)
     try:
         r = sess.post('https://{}/'.format(server), data=config_payload, headers={
-            'X-Aggregate-Auth':'1', 'X-Transcend-Version':'1'})
+            'X-Aggregate-Auth': '1', 'X-Transcend-Version': '1'})
         if b'<client-cert-request' in r.content:
             components.append('wants ccert')
         xml_post_ok = r.ok
     except rex.ChunkedEncodingError:
-        pass # some servers barf on this
+        pass  # some servers barf on this
 
     with closing(sess.request('CONNECT', 'https://{}/CSCOSSLC/tunnel'.format(server), headers={'Cookie': 'webvpn='}, stream=True)) as r:
         # Cisco returns X-Reason in response to bad CONNECT-tunnel request (GET works too)...
@@ -150,7 +157,7 @@ def anyconnect(sess, server):
             # At some point prior to February 24, 2020, Cisco introduced a new version of their servers which *reject* any
             # connections containing the X-AnyConnect-Platform header, and thus AnyConnect <v4.8 as well as OpenConnect <=8.10.
             r2 = sess.post('https://{}/'.format(server), data=config_payload, headers={
-                'X-Aggregate-Auth':'1', 'X-Transcend-Version':'1', 'X-AnyConnect-Platform': platform})
+                'X-Aggregate-Auth': '1', 'X-Transcend-Version': '1', 'X-AnyConnect-Platform': platform})
             if xml_post_ok and not r2.ok:
                 # We know that:
                 # 1) the initial XML post *without* the X-AnyConnect-Platform header is okay
@@ -161,16 +168,17 @@ def anyconnect(sess, server):
             else:
                 version = r.headers.get('server')
             return Hit(name="Cisco AnyConnect", version=version, components=components)
-        elif r.reason=='Cookie is not acceptable':
+        elif r.reason == 'Cookie is not acceptable':
             return Hit(name="ocserv", version='0.11.7+', components=components)
         # ... whereas ocserv 7e06e1ac..3feec670 inadvertently sends X-Reason header in the *body*
-        elif r.raw.read(9)==b'X-Reason:':
+        elif r.raw.read(9) == b'X-Reason:':
             return Hit(name="ocserv", version='0.8.0-0.11.6', components=components)
+
 
 def juniper_pulse(sess, server):
     '''Juniper/Pulse'''
 
-    with closing(sess.get('https://{}/'.format(server), headers={'Content-Type':'EAP', 'Upgrade':'IF-T/TLS 1.0', 'Content-Length': '0'}, stream=True)) as r:
+    with closing(sess.get('https://{}/'.format(server), headers={'Content-Type': 'EAP', 'Upgrade': 'IF-T/TLS 1.0', 'Content-Length': '0'}, stream=True)) as r:
         if r.status_code == 101:
             return Hit(name='Pulse Secure', version=r.headers.get('NCP-Version'))
         # TODO: it's possible to detect a client certificate requirement on a Pulse server
@@ -178,7 +186,7 @@ def juniper_pulse(sess, server):
         # but requires speaking the nasty binary Pulse protocol for a few packets
 
     confidence = None
-    r = sess.get('https://{}/dana-na'.format(server), headers={'user-agent':'ncsrv', 'NCP-Version': '3'})
+    r = sess.get('https://{}/dana-na'.format(server), headers={'user-agent': 'ncsrv', 'NCP-Version': '3'})
     if any(c.name.startswith('DS') for c in sess.cookies):
         confidence = 1.0
     elif urlsplit(r.url).path.startswith('/dana-na/auth/'):
@@ -186,29 +194,31 @@ def juniper_pulse(sess, server):
 
     return confidence and Hit(name='Juniper NC', confidence=confidence, version=r.headers.get('NCP-Version'))
 
+
 def f5_bigip(sess, server):
     '''F5 BigIP'''
 
     with closing(sess.get('https://{}/myvpn?sess=none&hdlc_framing=no&ipv4=1&ipv6=1&Z=none&hostname=none'.format(server), stream=True)) as r:
         # F5 server sends '504 Gateway Timeout' when it doesn't like the GET-tunnel parameters
         if r.status_code == 504:
-            return Hit(name='F5 BigIP', confidence=1.0 if r.headers.get('server','') == 'BigIP' else 0.9)
+            return Hit(name='F5 BigIP', confidence=1.0 if r.headers.get('server', '') == 'BigIP' else 0.9)
 
     r = sess.get('https://{}/my.policy'.format(server))
-    confidence = 0.1 * sum(x in r.headers.get('set-cookie','') for x in ('MRHSession', 'LastMRH_Session', 'F5_'))
+    confidence = 0.1 * sum(x in r.headers.get('set-cookie', '') for x in ('MRHSession', 'LastMRH_Session', 'F5_'))
     if urlsplit(r.url).path.startswith('/my.logout'):
         confidence += 0.5
-    if r.headers.get('server','') == 'BigIP':
+    if r.headers.get('server', '') == 'BigIP':
         confidence += 0.2
 
     return confidence and Hit(name='F5 BigIP', confidence=confidence)
+
 
 def array_networks(sess, server):
     '''Array Networks'''
 
     with closing(sess.get('https://{}/vpntunnel'.format(server), allow_redirects=False, stream=True)) as r:
         # Array server redirects to /prx/\d\d\d/.../cookietest when it doesn't like the GET-tunnel parameters
-        if r.status_code == 302 and re.match(r'/prx/\d\d\d/\S+/cookietest', r.headers.get('location','')):
+        if r.status_code == 302 and re.match(r'/prx/\d\d\d/\S+/cookietest', r.headers.get('location', '')):
             return Hit(name='Array Networks', confidence=1.0)
 
     r = sess.get('https://{}/'.format(server))
@@ -222,6 +232,7 @@ def array_networks(sess, server):
 
     return confidence and Hit(name='Array Networks', confidence=confidence)
 
+
 #####
 # Sniffers based on behavior of web front-end
 #####
@@ -231,6 +242,7 @@ def openvpn(sess, server):
     r = sess.get('https://{}/'.format(server))
     if any(c.name.startswith('openvpn_sess_') for c in sess.cookies):
         return Hit(name='OpenVPN', version=r.headers.get('server'))
+
 
 def barracuda(sess, server):
     '''Barracuda'''
@@ -250,12 +262,13 @@ def barracuda(sess, server):
 
     return confidence and Hit(name='Barracuda', version=version, confidence=confidence)
 
+
 def fortinet(sess, server):
     '''Fortinet'''
 
     # server sets *empty* SVPNCOOKIE/SVPNNETWORKCOOKIE
     r = sess.get('https://{}/remote/login'.format(server))
-    if r.headers.get('set-cookie','').startswith('SVPNCOOKIE'):
+    if r.headers.get('set-cookie', '').startswith('SVPNCOOKIE'):
         version = r.headers.get('server')
         if version == 'xxxxxxxx-xxxxx':
             confidence = 1.0
@@ -269,34 +282,37 @@ def fortinet(sess, server):
         r = sess.get('https://{}/remote/fortisslvpn_xml'.format(server), allow_redirects=False)
         if r.status_code == 403:
             version = ((version + '; ') if version else '') + 'FortiGate >v6.2?'
-        elif r.status_code == 302 and re.search(r'/remote/login', r.headers.get('location','')):
+        elif r.status_code == 302 and re.search(r'/remote/login', r.headers.get('location', '')):
             # Older FortiGate versions (we think) respond to invalid/expired SVPNCOOKIE thusly
             confidence = 1.0
             version = ((version + '; ') if version else '') + 'FortiGate <v6.2?'
         return Hit(name='Fortinet', confidence=confidence, version=version)
+
 
 def sonicwall_nx(sess, server):
     '''SonicWall NX'''
 
     sess.cookies.set(domain=server, name='EXTRAWEB_REFERER', value='/preauthMI/microinterrogator.js')
     with closing(sess.get('https://{}/sslvpnclient?launchplatform=mac&neProto=3&supportipv6=yes'.format(server), stream=True,
-                          headers={ "X-SSLVPN-PROTOCOL":"2.0", "X-SSLVPN-SERVICE": "NETEXTENDER", "X-NE-PROTOCOL": "2.0" })) as r:
+                          headers={"X-SSLVPN-PROTOCOL": "2.0", "X-SSLVPN-SERVICE": "NETEXTENDER", "X-NE-PROTOCOL": "2.0"})) as r:
         if 'EXTRAWEB_STATE' in sess.cookies and 400 <= r.status_code < 500:
             server = r.headers.get('server')
             return Hit(name='SonixWall NX', confidence=0.8, version=server)
+
 
 def aruba_via(sess, server):
     '''Aruba VIA'''
 
     # server sets *empty* SESSION cookie and returns 401 invalid
     r = sess.get('https://{}'.format(server))
-    if r.status_code == 401 and r.headers.get('set-cookie','').startswith('SESSION'):
+    if r.status_code == 401 and r.headers.get('set-cookie', '').startswith('SESSION'):
         confidence = 0.5 if 'Aruba Networks' in r.text else 0.3
         r = sess.get('https://{}/screens/wms/wms.login'.format(server))
-        if r.status_code == 200 and r.headers.get('set-cookie','').startswith('SESSION'):
+        if r.status_code == 200 and r.headers.get('set-cookie', '').startswith('SESSION'):
             confidence += 0.3
 
         return Hit(name='Aruba VIA', confidence=confidence)
+
 
 sniffers = [
     anyconnect,

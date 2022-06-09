@@ -9,7 +9,7 @@ from random import shuffle
 import socket
 
 from what_vpn.requests import SnifferSession
-from what_vpn.sniffers import Hit, sniffers as all_sniffers
+from what_vpn.sniffers import sniffers as all_sniffers
 import what_vpn.sniffers as sn
 
 matched_vpns = [('vpn.{}.edu'.format(d), s) for d, s in (
@@ -54,6 +54,7 @@ unmatched_vpns = ['vpn.{}.edu'.format(d) for d in (
     'drew',  # FIXME: false-negative SonicWall
     )]
 
+
 class test_known_servers:
     def setUp(self):
         self.session = SnifferSession()
@@ -63,7 +64,7 @@ class test_known_servers:
         if expected is not None:
             expected_hits = 1
             expected = getattr(sn, expected)
-            sniffers = list(set(all_sniffers) - { expected })
+            sniffers = list(set(all_sniffers) - {expected})
             shuffle(sniffers)
             sniffers = [expected] + sniffers[:2]
         else:
