@@ -25,7 +25,7 @@ def main():
     x = p.add_mutually_exclusive_group()
     x.add_argument('-v', '--verbose', default=0, action='count')
     x.add_argument('-c', '--csv', action='store_true', help='Output report in CSV format')
-    p.add_argument('server', nargs='+', help='suspected SSL-VPN server')
+    p.add_argument('server', nargs='+', help='suspected SSL-VPN server', metavar="server[:port]")
     p.add_argument('-L', '--logging', default=0, action='count', help='Detailed logging for requests and httplib')
     p.add_argument('-V', '--version', action='version', version='%(prog)s ' + __version__)
     x = p.add_mutually_exclusive_group()

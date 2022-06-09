@@ -27,7 +27,9 @@ matched_vpns = [('vpn.{}.edu'.format(d), s) for d, s in (
     ('acu', sn.sonicwall_nx),
     ('whitworth', sn.f5_bigip),
     )] + [
+    ('securesso.aurora.edu', sn.global_protect),
     ('vpn.physics.ox.ac.uk', sn.sstp),
+    ('uwmadison.vpn.wisc.edu', sn.global_protect),
     ('umsovpn.umassp.edu', sn.check_point),
     ('gmhssl.gmha.org', sn.barracuda),
     ('sslvpn.co.adams.il.us', sn.barracuda),
@@ -43,15 +45,13 @@ matched_vpns = [('vpn.{}.edu'.format(d), s) for d, s in (
     ('174.127.47.193', sn.check_point),  # no DNS?
     ('nomad.sandiego.edu', sn.aruba_via),
     ('viavpn.luther.edu', sn.aruba_via),
+    ('vpn.wdc.softlayer.com', sn.array_networks),
     ]
 
 unmatched_vpns = ['vpn.{}.edu'.format(d) for d in (
-    'aurora',
-    'wisc',
     'valpo',
     'uu',
     'drew',  # FIXME: false-negative SonicWall
-    'softlayer',  # FIXME: false-negative Array Networks
     )]
 
 
