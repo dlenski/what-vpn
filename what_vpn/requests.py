@@ -1,11 +1,12 @@
 import requests
 
 from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.poolmanager import PoolManager
+from urllib3 import PoolManager
 import ssl
 
 
 # https://lukasa.co.uk/2013/01/Choosing_SSL_Version_In_Requests/
+# https://github.com/psf/requests/issues/4775#issuecomment-478198879
 class SSLVersionAdapter(HTTPAdapter):
     '''An HTTPS Transport Adapter that uses an arbitrary SSL version.'''
     SSLv23 = ssl.PROTOCOL_SSLv23
@@ -18,10 +19,13 @@ class SSLVersionAdapter(HTTPAdapter):
         super().__init__(**kwargs)
 
     def init_poolmanager(self, connections, maxsize, block=False):
+        ssl_context = ssl.SSLContext(self.ssl_version) if self.ssl_version else ssl.SSLContext()
+        ssl_context.set_ciphers('DEFAULT@SECLEVEL=0')
+        ssl_context.options |= 1<<2  # OP_LEGACY_SERVER_CONNECT
         self.poolmanager = PoolManager(num_pools=connections,
                                        maxsize=maxsize,
                                        block=block,
-                                       ssl_version=self.ssl_version)
+                                       ssl_context=ssl_context)
 
 
 class TimeoutSession(requests.Session):
@@ -40,5 +44,4 @@ class SnifferSession(TimeoutSession):
         super().__init__(*a, **kw)
         del self.headers['user-agent']
         self.verify = False
-        if ssl_version:
-            self.mount('https://', SSLVersionAdapter(ssl_version))
+        self.mount('https://', SSLVersionAdapter(ssl_version))
