@@ -314,6 +314,16 @@ def aruba_via(sess, server):
         return Hit(name='Aruba VIA', confidence=confidence)
 
 
+def h3c(sess, server):
+    '''H3C TLS VPN'''
+    r = sess.get('https://{}/svpn/index.cgi'.format(server), headers={'user-agent': 'SSLVPN-Client/3.0'})
+    if '<gatewayinfo>' in r.text:
+        # HTML/XML page containing server information, including auth methods
+        server = r.headers.get('server')
+        return Hit(name='H3C', confidence=0.9 if server == 'SSLVPN-Gateway/7.0' else 0.8,
+                   version=_meaningless(server, 'SSLVPN-Gateway/7.0'))
+
+
 sniffers = [
     anyconnect,
     juniper_pulse,
@@ -327,4 +337,5 @@ sniffers = [
     f5_bigip,
     sonicwall_nx,
     aruba_via,
+    h3c,
 ]
