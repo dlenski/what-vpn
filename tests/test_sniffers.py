@@ -25,7 +25,6 @@ matched_vpns = [('vpn.{}.edu'.format(d), s) for d, s in (
     ('tcu', sn.f5_bigip),
     ('brown', sn.f5_bigip),
     ('acu', sn.sonicwall_nx),
-    ('whitworth', sn.f5_bigip),
     )] + [
     ('securesso.aurora.edu', sn.global_protect),
     ('vpn.physics.ox.ac.uk', sn.sstp),
