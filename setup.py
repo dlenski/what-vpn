@@ -7,9 +7,6 @@ try:
 except ImportError:
     from distutils.core import setup
 
-if not sys.version_info[0] == 3:
-    sys.exit("Python 2.x is not supported; Python 3.x is required.")
-
 ########################################
 
 version_py = os.path.join('what_vpn', 'version.py')
@@ -30,6 +27,7 @@ setup(
     author="Daniel Lenski",
     author_email="dlenski@gmail.com",
     license='GPL v3 or later',
+    python_requires=">=3",
     install_requires=open("requirements.txt").readlines(),
     url="https://github.com/dlenski/what-vpn",
     packages=['what_vpn'],
