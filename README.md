@@ -132,11 +132,10 @@ an identifiable SSL VPN protocol:
 We've recently added support in OpenConnect for [Fortinet and F5
 BigIP](https://gitlab.com/openconnect/openconnect/-/merge_requests/169)
 (with support for SonicWall NX coming soon). Combined with AnyConnect, GlobalProtect,
-and Pulse/Juniper, this means that OpenConnect now supports 5 of the most highly-used
-SSL VPN protocols.
+and Pulse/Juniper, OpenConnect now supports 5 of the most highly-used SSL VPN protocols.
 
-Assuming again that these results are roughly representative of “SSL VPN” deployments
-_in general_ (at least in the USA). That means that OpenConnect now supports almost
+Once again assuming that these results are roughly representative of “SSL VPN” deployments
+_in general_ (at least in the USA), it appears that OpenConnect now supports almost
 93% of SSL VPNs in real-world use.
 
 ## TODO
