@@ -195,6 +195,24 @@ def juniper_pulse(sess, server):
     return confidence and Hit(name='Juniper NC', confidence=confidence, version=r.headers.get('NCP-Version'))
 
 
+def juniper_secure_connect(sess, server):
+    '''Juniper Secure Connect'''
+
+    r = sess.post('https://{}/remoteaccess/login'.format(server),
+                  headers={'Accept': 'application/json'},
+                  json={})
+    try:
+        j = r.json()
+    except ValueError:
+        pass
+    else:
+        confidence = 0.8
+        # {"authenticated":"no","error":"Login data parsing failure"}
+        if isinstance(j, dict) and ('authenticated' in j or 'error' in j):
+            confidence = 1.0
+        return Hit(name="Juniper Secure Connect", confidence=confidence)
+
+
 def f5_bigip(sess, server):
     '''F5 BigIP'''
 
@@ -327,6 +345,7 @@ def h3c(sess, server):
 sniffers = [
     anyconnect,
     juniper_pulse,
+    juniper_secure_connect,
     global_protect,
     barracuda,
     check_point,
