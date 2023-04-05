@@ -101,14 +101,14 @@ def check_point(sess, server):
         elif ']' in last:  # we mis-split something like '[2601::1234]':
             host, port = server, 443
         else:
-            host, port = rest, last[0]
+            host, port = rest, int(last[0])
 
         client_hello = b'(client_hello\n:client_version (1)\n:protocol_version (1)\n:OM (\n:ipaddr (0.0.0.0)\n:keep_address (false)\n)\n:optional (\n:client_type (4)\n)\n:cookie (ff)\n)\n'
         client_hello = bytes((0, 0, 0, len(client_hello), 0, 0, 0, 1)) + client_hello  # Add length and packet-type prefix
         with closing(conn):
             conn.connect((host, port))
             conn.write(client_hello)
-            resp = conn.recv()
+            resp = conn.recv(19)
             if resp[4:19] == b'\0\0\0\x01(disconnect':
                 confidence = 1.0
                 protocols = ('SSL',)
