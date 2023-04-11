@@ -35,10 +35,10 @@ setup(
     packages=['what_vpn'],
     entry_points={'console_scripts': ['what-vpn=what_vpn.__main__:main']},
     test_suite='nose2.collector.collector',
-    classifiers={
+    classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',
         'Topic :: System :: Networking',
         'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
-    },
+    ],
 )
