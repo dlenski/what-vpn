@@ -361,6 +361,17 @@ def huawei(sess, server):
                    confidence = 0.4 + (0.2 if parse_qs(final_url.query).get('ReloginCause') else 0) + (0.4 if bizarre_cookie else 0))
 
 
+def anylink(sess, server):
+    '''AnyLink'''
+    r = sess.get('https://{}'.format(server)
+    , headers={'user-agent': 'SSLVPN-Client/3.0'}
+    )
+    server = r.headers.get('server')
+    if server == 'AnyLinkOpenSource':
+        return Hit(name='AnyLink',
+                   confidence = 0.8 + (0.2 if r.text.startswith('AnyLink') else 0))
+
+
 sniffers = [
     anyconnect,
     juniper_pulse,
@@ -377,4 +388,5 @@ sniffers = [
     aruba_via,
     h3c,
     huawei,
+    anylink,
 ]
