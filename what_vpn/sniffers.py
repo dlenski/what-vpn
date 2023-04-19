@@ -48,16 +48,23 @@ def global_protect(sess, server):
     #        components.append('gateway')
 
     components = []
-    version = hit = None
+    version = confidence = None
 
     for component, path in (('portal', 'global-protect'), ('gateway', 'ssl-vpn')):
         r = sess.post('https://{}/{}/prelogin.esp?tmp=tmp&clientVer=4100&clientos=Windows'.format(server, path),
                       headers={'user-agent': 'PAN GlobalProtect'})
         if r.headers.get('content-type', '').startswith('application/xml') and b'<prelogin-response>' in r.content:
-            hit = True
+            confidence = 1.0
 
             if b'<status>Success</status>' in r.content:
                 components.append(component)
+                if 'gateway' in components:
+                    # Gateway servers return '502 Bad Gateway' when they don't like the user/authcookie parameters
+                    # for the SSL tunnel. It's theoretically possible, but I've literally never seen a gateway server
+                    # that doesn't use the standard SSL tunnel path.
+                    with closing(sess.get('https://{}/ssl-tunnel-connect.sslvpn?user=&authcookie='.format(server))) as r:
+                        if r.status_code != 502:
+                            confidence = 0.8
             elif b'<status>Error</status>' in r.content and b'<msg>Valid client certificate is required</msg>' in r.content:
                 components.append(component)
                 components.append(component + ' wants ccert')
@@ -71,8 +78,8 @@ def global_protect(sess, server):
             if m:
                 version = m.group(1).decode()
 
-    if hit:
-        return Hit(name='PAN GlobalProtect', components=components, version=_meaningless(version, '1'))
+    if confidence:
+        return Hit(name='PAN GlobalProtect', components=components, version=_meaningless(version, '1'), confidence=confidence)
 
 
 def check_point(sess, server):
