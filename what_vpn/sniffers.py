@@ -1,5 +1,5 @@
 from contextlib import closing
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit, parse_qs
 from requests import exceptions as rex
 import re
 import attr
@@ -349,6 +349,18 @@ def h3c(sess, server):
                    version=_meaningless(server, 'SSLVPN-Gateway/7.0'))
 
 
+def huawei(sess, server):
+    '''Huawei SSL VPN'''
+    r = sess.post('https://{}/login.html'.format(server), data={'UserName': '', 'Password': ''}, allow_redirects=False)
+    final_url = urlsplit(r.headers.get('location', ''))
+    if final_url.path.split('/')[-1] == 'relogin.html':
+        # Server sends a bizarrely-formatted set-cookie header like 'Set-Cookie: UserID=0&SVN_SessionID='
+        # HTTP cookie names aren't supposed to contain ampersands like this.
+        bizarre_cookie = r.headers.get('set-cookie', '').startswith('UserID=') and '&' in r.headers.get('set-cookie', '')
+        return Hit(name='Huawei',
+                   confidence = 0.4 + (0.2 if parse_qs(final_url.query).get('ReloginCause') else 0) + (0.4 if bizarre_cookie else 0))
+
+
 sniffers = [
     anyconnect,
     juniper_pulse,
@@ -364,4 +376,5 @@ sniffers = [
     sonicwall_nx,
     aruba_via,
     h3c,
+    huawei,
 ]

@@ -20,6 +20,7 @@ Currently it can recognize…
 * F5 BigIP
 * SonicWall NX (spin-off from [Dell](https://www.sonicwall.com/news/sonicwall-announces-spin-out-from-dell-software-gr))
 * Aruba VIA
+* Huawei
 * H3C
 
 ## Install
