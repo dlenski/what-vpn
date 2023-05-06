@@ -320,9 +320,15 @@ def sonicwall_nx(sess, server):
     sess.cookies.set(domain=server, name='EXTRAWEB_REFERER', value='/preauthMI/microinterrogator.js')
     with closing(sess.get('https://{}/sslvpnclient?launchplatform=mac&neProto=3&supportipv6=yes'.format(server), stream=True,
                           headers={"X-SSLVPN-PROTOCOL": "2.0", "X-SSLVPN-SERVICE": "NETEXTENDER", "X-NE-PROTOCOL": "2.0"})) as r:
-        if 'EXTRAWEB_STATE' in sess.cookies and 400 <= r.status_code < 500:
+        if 400 <= r.status_code < 500:
             server = r.headers.get('server')
-            return Hit(name='SonixWall NX', confidence=0.8, version=server)
+            if 'EXTRAWEB_STATE' in sess.cookies:
+                confidence = 0.8
+            else:
+                confidence = 0.3
+                if 'SonicWall' in r.text:
+                    confidence += 0.2
+            return Hit(name='SonixWall NX', confidence=confidence, version=server)
 
 
 def aruba_via(sess, server):
