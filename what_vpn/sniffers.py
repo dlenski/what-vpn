@@ -5,6 +5,11 @@ import re
 import attr
 import ssl
 import socket
+try:
+    import dtls
+    dtls.do_patch()
+except ImportError:
+    dtls = None
 
 
 @attr.s
@@ -35,6 +40,18 @@ class Hit(object):
 def _meaningless(x, *vals):
     if x not in vals:
         return x
+
+
+
+def server_split(host_and_maybe_port):
+    rest, *last = host_and_maybe_port.rsplit(':', 1)
+    if not last:
+        host, port = rest, 443
+    elif ']' in last:  # we mis-split an IPv6 address, something like '[2601::1234]':
+        host, port = host_and_maybe_port, 443
+    else:
+        host, port = rest, int(last[0])
+    return host, port
 
 
 #####
@@ -102,18 +119,10 @@ def check_point(sess, server):
         context = ssl._create_unverified_context()
         conn = context.wrap_socket(sock)
 
-        rest, *last = server.rsplit(':', 1)
-        if not last:
-            host, port = rest, 443
-        elif ']' in last:  # we mis-split something like '[2601::1234]':
-            host, port = server, 443
-        else:
-            host, port = rest, int(last[0])
-
         client_hello = b'(client_hello\n:client_version (1)\n:protocol_version (1)\n:OM (\n:ipaddr (0.0.0.0)\n:keep_address (false)\n)\n:optional (\n:client_type (4)\n)\n:cookie (ff)\n)\n'
         client_hello = bytes((0, 0, 0, len(client_hello), 0, 0, 0, 1)) + client_hello  # Add length and packet-type prefix
         with closing(conn):
-            conn.connect((host, port))
+            conn.connect(server_split(server))
             conn.write(client_hello)
             resp = conn.recv(19)
             if resp[4:19] == b'\0\0\0\x01(disconnect':
@@ -311,7 +320,26 @@ def fortinet(sess, server):
             # Older FortiGate versions (we think) respond to invalid/expired SVPNCOOKIE thusly
             confidence = 1.0
             version = ((version + '; ') if version else '') + 'FortiGate <v6.2?'
-        return Hit(name='Fortinet', confidence=confidence, version=version)
+
+        # See if we can connect via DTLS
+        dtls = None
+
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.settimeout(sess.timeout)
+        context = ssl._create_unverified_context()
+        conn = context.wrap_socket(sock)
+
+        client_hello = b'GFtype\0clthello\0SVPNCOOKIE\0deadbeef\0'
+        client_hello = bytes((len(client_hello)>>8, len(client_hello) & 0xff)) + client_hello  # Add length prefix (be16)
+        with closing(conn):
+            conn.connect(server_split(server))
+            conn.write(client_hello)
+            resp = conn.recv()
+            if resp[0] == (len(resp)>>8) and resp[1] == (len(resp)&0xff) and resp[2:9] == b'GFtype\0':
+                confidence = 1.0
+                dtls = True
+
+        return Hit(name='Fortinet', confidence=confidence, version=version, components=(['DTLS'] if dtls else None))
 
 
 def sonicwall_nx(sess, server):

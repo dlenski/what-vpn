@@ -28,6 +28,11 @@ setup(
     author_email="dlenski@gmail.com",
     license='GPL v3 or later',
     python_requires=">=3",
+    extras_require={
+        "DTLS": [
+            "python3-dtls @ https://github.com/mcfreis/pydtls/commits/py3",
+        ]
+    },
     install_requires=open("requirements.txt").readlines(),
     url="https://github.com/dlenski/what-vpn",
     packages=['what_vpn'],
