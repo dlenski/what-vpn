@@ -8,8 +8,9 @@ import socket
 try:
     import dtls
     dtls.do_patch()
+    can_dtls = True
 except ImportError:
-    dtls = None
+    can_dtls = False
 
 
 @attr.s
@@ -323,21 +324,23 @@ def fortinet(sess, server):
 
         # See if we can connect via DTLS
         dtls = None
+        if can_dtls:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            sock.settimeout(sess.timeout)
+            # FIXME: _create_unverified_context() doesn't work with PyDTLS
+            # context = ssl._create_unverified_context()
+            # conn = context.wrap_socket(sock)
+            conn = ssl.wrap_socket(sock)
 
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.settimeout(sess.timeout)
-        context = ssl._create_unverified_context()
-        conn = context.wrap_socket(sock)
-
-        client_hello = b'GFtype\0clthello\0SVPNCOOKIE\0deadbeef\0'
-        client_hello = bytes((len(client_hello)>>8, len(client_hello) & 0xff)) + client_hello  # Add length prefix (be16)
-        with closing(conn):
-            conn.connect(server_split(server))
-            conn.write(client_hello)
-            resp = conn.recv()
-            if resp[0] == (len(resp)>>8) and resp[1] == (len(resp)&0xff) and resp[2:9] == b'GFtype\0':
-                confidence = 1.0
-                dtls = True
+            client_hello = b'GFtype\0clthello\0SVPNCOOKIE\0deadbeef\0'
+            client_hello = bytes((len(client_hello)>>8, len(client_hello) & 0xff)) + client_hello  # Add length prefix (be16)
+            with closing(conn):
+                conn.connect(server_split(server))
+                conn.write(client_hello)
+                resp = conn.recv()
+                if resp[0] == (len(resp)>>8) and resp[1] == (len(resp)&0xff) and resp[2:9] == b'GFtype\0':
+                    confidence = 1.0
+                    dtls = True
 
         return Hit(name='Fortinet', confidence=confidence, version=version, components=(['DTLS'] if dtls else None))
 
