@@ -102,7 +102,9 @@ def main():
                 ex = 'connection error'
             except Exception as e:
                 if args.verbose > 1:
-                    print('\nException in {} sniffer: {!r}\n'.format(desc, e))
+                    import traceback
+                    print('\nException in {} sniffer:'.format(desc))
+                    traceback.print_exc()
                 ex = e.__class__.__name__
             else:
                 ex = 'no match'
