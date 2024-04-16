@@ -47,6 +47,7 @@ matched_vpns = [('vpn.{}.edu'.format(d), s) for d, s in (
     ('viavpn.luther.edu', sn.aruba_via),
     ('vpn.wdc.softlayer.com', sn.array_networks),
     ('166.111.32.74:10443', sn.h3c), # no DNS? tsinghua.edu.cn
+    ('58.246.39.91:8899', sn.huawei), # no DNS? China, non-edu
     ]
 
 unmatched_vpns = ['vpn.{}.edu'.format(d) for d in (
