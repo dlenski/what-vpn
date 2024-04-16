@@ -348,6 +348,7 @@ def fortinet(sess, server):
 def sonicwall_nx(sess, server):
     '''SonicWall NX (formerly Dell)'''
 
+    confidence = serverh = None
     sess.cookies.set(domain=server, name='EXTRAWEB_REFERER', value='/preauthMI/microinterrogator.js')
     with closing(sess.get('https://{}/sslvpnclient?launchplatform=mac&neProto=3&supportipv6=yes'.format(server), stream=True,
                           headers={"X-SSLVPN-PROTOCOL": "2.0", "X-SSLVPN-SERVICE": "NETEXTENDER", "X-NE-PROTOCOL": "2.0"})) as r:
@@ -355,11 +356,11 @@ def sonicwall_nx(sess, server):
             serverh = r.headers.get('server')
             if 'EXTRAWEB_STATE' in sess.cookies:
                 confidence = 0.8
-            else:
-                confidence = 0.3
-                if 'SonicWall' in r.text:
-                    confidence += 0.2
-            return Hit(name='SonixWall NX', confidence=confidence, version=serverh)
+            elif 'SonicWall' in r.text:
+                confidence = 0.2
+
+    if confidence:
+        return Hit(name='SonixWall NX', confidence=confidence, version=serverh)
 
 
 def aruba_via(sess, server):
