@@ -352,14 +352,14 @@ def sonicwall_nx(sess, server):
     with closing(sess.get('https://{}/sslvpnclient?launchplatform=mac&neProto=3&supportipv6=yes'.format(server), stream=True,
                           headers={"X-SSLVPN-PROTOCOL": "2.0", "X-SSLVPN-SERVICE": "NETEXTENDER", "X-NE-PROTOCOL": "2.0"})) as r:
         if 400 <= r.status_code < 500:
-            server = r.headers.get('server')
+            serverh = r.headers.get('server')
             if 'EXTRAWEB_STATE' in sess.cookies:
                 confidence = 0.8
             else:
                 confidence = 0.3
                 if 'SonicWall' in r.text:
                     confidence += 0.2
-            return Hit(name='SonixWall NX', confidence=confidence, version=server)
+            return Hit(name='SonixWall NX', confidence=confidence, version=serverh)
 
 
 def aruba_via(sess, server):
@@ -381,8 +381,8 @@ def h3c(sess, server):
     r = sess.get('https://{}/svpn/index.cgi'.format(server), headers={'user-agent': 'SSLVPN-Client/3.0'})
     if '<gatewayinfo>' in r.text:
         # HTML/XML page containing server information, including auth methods
-        server = r.headers.get('server')
-        return Hit(name='H3C', confidence=0.9 if server == 'SSLVPN-Gateway/7.0' else 0.8,
+        serverh = r.headers.get('server')
+        return Hit(name='H3C', confidence=0.9 if serverh == 'SSLVPN-Gateway/7.0' else 0.8,
                    version=_meaningless(server, 'SSLVPN-Gateway/7.0'))
 
 
