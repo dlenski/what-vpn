@@ -48,7 +48,7 @@ def server_split(host_and_maybe_port):
     rest, *last = host_and_maybe_port.rsplit(':', 1)
     if not last:
         host, port = rest, 443
-    elif ']' in last:  # we mis-split an IPv6 address, something like '[2601::1234]':
+    elif ']' in last[0]:  # we mis-split an IPv6 address, something like '[2601::1234]':
         host, port = host_and_maybe_port, 443
     else:
         host, port = rest, int(last[0])

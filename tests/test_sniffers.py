@@ -42,12 +42,13 @@ matched_vpns = [('vpn.{}.edu'.format(d), s) for d, s in (
     ('vpn.sgh.waw.pl', sn.global_protect),     # portal
     ('vpn-gw.sgh.waw.pl', sn.global_protect),  # gateway
     ('jvpn.tn.gov', sn.juniper_pulse),
-    ('174.127.47.193', sn.check_point),  # no DNS?
+    ('174.127.47.193', sn.check_point),        # no DNS?
     ('nomad.sandiego.edu', sn.aruba_via),
     ('viavpn.luther.edu', sn.aruba_via),
     ('vpn.wdc.softlayer.com', sn.array_networks),
-    ('166.111.32.74:10443', sn.h3c), # no DNS? tsinghua.edu.cn
-    ('58.246.39.91:8899', sn.huawei), # no DNS? China, non-edu
+    ('166.111.32.74:10443', sn.h3c),           # no DNS? tsinghua.edu.cn
+    ('58.246.39.91:8899', sn.huawei),          # no DNS? China, non-edu
+    ('[2620:0:e00:17::2]', sn.anyconnect)      # address changes sometimes (https://dns.google/query?name=vpn.cites.illinois.edu&type=AAA)
     ]
 
 unmatched_vpns = ['vpn.{}.edu'.format(d) for d in (
@@ -101,3 +102,16 @@ class test_known_servers:
         for domain in unmatched_vpns:
             shuffle(self.sniffers)
             yield self.check_hits, domain, None
+
+
+def test_server_split():
+    def check_server_split(netloc, expected):
+        assert sn.server_split(netloc) == expected
+
+    for netloc, expected in (
+        ('foo.bar.com:123', ('foo.bar.com', 123)),
+        ('foo.bar.com', ('foo.bar.com', 443)),
+        ('[dead:beef::f00f]', ('[dead:beef::f00f]', 443)),
+        ('[dead:beef::f00f]:789', ('[dead:beef::f00f]', 789)),
+    ):
+        yield check_server_split, netloc, expected
