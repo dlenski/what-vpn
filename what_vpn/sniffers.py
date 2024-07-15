@@ -232,20 +232,51 @@ def juniper_secure_connect(sess, server):
 
 def f5_bigip(sess, server):
     '''F5 BigIP'''
+    confidence = 0.0
 
-    with closing(sess.get('https://{}/myvpn?sess=none&hdlc_framing=no&ipv4=1&ipv6=1&Z=none&hostname=none'.format(server), stream=True)) as r:
+    tun_path = '/myvpn?sess=none&hdlc_framing=no&ipv4=1&ipv6=1&Z=none&hostname=none'
+    with closing(sess.get('https://{}{}'.format(server, tun_path), stream=True)) as r:
         # F5 server sends '504 Gateway Timeout' when it doesn't like the GET-tunnel parameters
         if r.status_code == 504:
-            return Hit(name='F5 BigIP', confidence=1.0 if r.headers.get('server', '') == 'BigIP' else 0.9)
+            confidence = 1.0 if r.headers.get('server', '') == 'BigIP' else 0.9
 
-    r = sess.get('https://{}/my.policy'.format(server))
-    confidence = 0.1 * sum(x in r.headers.get('set-cookie', '') for x in ('MRHSession', 'LastMRH_Session', 'F5_'))
-    if urlsplit(r.url).path.startswith('/my.logout'):
-        confidence += 0.5
-    if r.headers.get('server', '') == 'BigIP':
-        confidence += 0.2
+    if not confidence:
+        # Look for F5-related cookies if tunnel query didn't work
+        r = sess.get('https://{}/my.policy'.format(server))
+        confidence = 0.1 * sum(x in r.headers.get('set-cookie', '') for x in ('MRHSession', 'LastMRH_Session', 'F5_'))
+        if urlsplit(r.url).path.startswith('/my.logout'):
+            confidence += 0.5
+        if r.headers.get('server', '') == 'BigIP':
+            confidence += 0.2
 
-    return confidence and Hit(name='F5 BigIP', confidence=confidence)
+    # See if we can connect via DTLS
+    dtls = None
+    if confidence and can_dtls:
+        host, port = server_split(server)
+        for port in set((4433, port)):  # We don't actually know the port for DTLS; just guess
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            sock.settimeout(sess.timeout)
+            # FIXME: _create_unverified_context() doesn't work with PyDTLS
+            # context = ssl._create_unverified_context()
+            # conn = context.wrap_socket(sock)
+            conn = ssl.wrap_socket(sock)
+
+            client_hello = 'GET {} HTTP/1.1\r\nHost: {}\r\n\r\n'.format(tun_path, host).encode()  # Yes, it's HTTP-over-DTLS (https://gitlab.com/openconnect/openconnect/-/blob/77ac1a99/f5.c?page=1#L740)
+            try:
+                conn.connect((host, port))
+                dtls = 'possible DTLS on port {}'.format(port)
+                conn.write(client_hello)
+                resp = conn.recv()
+                if resp:
+                    confidence = 1.0
+                    dtls = 'DTLS on port {}'.format(port)
+                    break
+            except socket.error:
+                pass
+            finally:
+                conn.close()
+
+    return confidence and Hit(name='F5 BigIP', confidence=confidence, components=([dtls] if dtls else None))
 
 
 def array_networks(sess, server):
@@ -334,13 +365,17 @@ def fortinet(sess, server):
 
             client_hello = b'GFtype\0clthello\0SVPNCOOKIE\0deadbeef\0'
             client_hello = bytes((len(client_hello)>>8, len(client_hello) & 0xff)) + client_hello  # Add length prefix (be16)
-            with closing(conn):
+            try:
                 conn.connect(server_split(server))
                 conn.write(client_hello)
                 resp = conn.recv()
                 if resp[0] == (len(resp)>>8) and resp[1] == (len(resp)&0xff) and resp[2:9] == b'GFtype\0':
                     confidence = 1.0
                     dtls = True
+            except socket.error:
+                pass
+            finally:
+                conn.close()
 
         return Hit(name='Fortinet', confidence=confidence, version=version, components=(['DTLS'] if dtls else None))
 
