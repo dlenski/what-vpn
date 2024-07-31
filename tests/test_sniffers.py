@@ -16,6 +16,7 @@ matched_vpns = [('vpn.{}.edu'.format(d), s) for d, s in (
     ('northeastern', sn.global_protect),  # portal
     ('yale', sn.anyconnect),              # Cisco, bad cert
     ('fau', sn.juniper_pulse),
+    ('jh', sn.juniper_pulse),
     ('simmons', sn.check_point),
     ('nl', sn.anyconnect),
     ('ycp', sn.fortinet),
@@ -48,7 +49,7 @@ matched_vpns = [('vpn.{}.edu'.format(d), s) for d, s in (
     ('vpn.wdc.softlayer.com', sn.array_networks),
     ('166.111.32.74:10443', sn.h3c),           # no DNS? tsinghua.edu.cn
     ('58.246.39.91:8899', sn.huawei),          # no DNS? China, non-edu
-    ('[2620:0:e00:17::2]', sn.anyconnect)      # address changes sometimes (https://dns.google/query?name=vpn.cites.illinois.edu&type=AAA)
+    ('[2620:0:e00:4e::2]', sn.anyconnect)      # address changes sometimes (https://dns.google/query?name=vpn.cites.illinois.edu&type=AAAA)
     ]
 
 unmatched_vpns = ['vpn.{}.edu'.format(d) for d in (
