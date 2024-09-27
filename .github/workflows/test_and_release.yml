@@ -5,6 +5,9 @@ name: test_and_release
 
 on: [ push, pull_request]
 
+permissions:
+  checks: write
+
 jobs:
   build:
 
@@ -54,7 +57,22 @@ jobs:
       continue-on-error: true   # These are flaky and some fail
       run: |
         if [ -f requirements-test.txt ]; then pip install -r requirements-test.txt; fi
-        coverage run --source=what_vpn -m nose2 --pretty-assert -v && coverage report -m
+        coverage run --source=what_vpn -m nose2 --pretty-assert -v --plugin nose2.plugins.junitxml --junit-xml && coverage report -m
+    - name: Publish Test Report
+      uses: mikepenz/action-junit-report@v3
+      if: always()
+      with:
+        report_paths: 'nose2-junit.xml'
+    - name: Coverage report to XML
+      if: always()
+      run:
+        coverage xml
+    - name: Publish Coverage Report
+      uses: orgoro/coverage@v3.1
+      if: always()
+      with:
+        coverageFile: coverage.xml
+        token: ${{ secrets.GITHUB_TOKEN }}
 
   # https://github.com/actions/starter-workflows/blob/main/ci/python-publish.yml
   release:
